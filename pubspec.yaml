@@ -1,0 +1,52 @@
+name: stepooo
+description: "A production-grade step tracking app with zero-delay 9-layer pipeline."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Tracking Core
+  pedometer: ^4.1.1
+  sensors_plus: ^6.1.1
+  tflite_flutter: ^0.10.4
+  
+  # Background & Sync
+  flutter_background_service: ^5.0.0
+  flutter_background_service_android: ^6.0.0
+  health: 11.0.0
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.2
+
+  # Utils & UI
+  geolocator: ^13.0.1
+  permission_handler: ^11.0.0
+  flutter_riverpod: ^2.5.0
+  go_router: ^13.0.0
+  google_fonts: ^6.2.1
+  battery_plus: ^7.0.0
+
+  # Phase 2 Features
+  fl_chart: ^0.69.0                          # Historical bar charts
+  sqflite: ^2.3.3+1                          # Local SQLite database
+  path: ^1.9.0                               # Path helpers for sqflite
+  flutter_local_notifications: ^18.0.0       # Smart hourly reminders
+  flutter_map: ^7.0.2                        # GPS route map (OpenStreetMap)
+  latlong2: ^0.9.1                           # LatLng type for flutter_map
+  lottie: ^3.1.2                             # Badge unlock animations
+  home_widget: ^0.7.0                        # Android home-screen widget
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Home-Screen Widget Layout for Stepooo
+    ──────────────────────────────────────
+    RemoteViews restricts which view types are allowed in widget layouts.
+    Only: FrameLayout, LinearLayout, RelativeLayout, GridLayout,
+          AnalogClock, Button, Chronometer, ImageButton, ImageView,
+          ProgressBar, TextView, ViewFlipper, ListView, GridView,
+          StackView, AdapterViewFlipper.
+    All values are set at runtime by StepWidgetProvider via RemoteViews.
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="12dp"
+    android:background="@drawable/widget_background">
+
+    <!-- App label -->
+    <TextView
+        android:id="@+id/widget_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stepooo"
+        android:textSize="11sp"
+        android:textColor="#80FFFFFF"
+        android:letterSpacing="0.1"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/widget_step_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="40sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/widget_steps_unit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="steps today"
+        android:textSize="12sp"
+        android:textColor="#B3FFFFFF" />
+
+    <!-- Progress bar -->
+    <ProgressBar
+        android:id="@+id/widget_progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="#6C63FF"
+        android:progressBackgroundTint="#40FFFFFF" />
+
+    <!-- Calories row -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔥 "
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/widget_calories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 kcal"
+            android:textSize="12sp"
+            android:textColor="#B3FFFFFF" />
+    </LinearLayout>
+
+</LinearLayout>

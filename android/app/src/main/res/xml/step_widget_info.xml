@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AppWidget metadata — declares minimum size, update frequency, and layout.
+    minWidth / minHeight: 2×1 cell = 110×40 dp (standard grid: ~70dp per cell + margins).
+    updatePeriodMillis: 1800000 = 30 min (Android minimum period is 30 minutes).
+    The widget is refreshed much faster via explicit broadcasts from home_widget.
+-->
+<appwidget-provider
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/step_widget"
+    android:widgetCategory="home_screen"
+    android:resizeMode="horizontal|vertical"
+    android:description="@string/widget_description" />
