@@ -1,0 +1,67 @@
+﻿Analyzing stepooo...                                            
+
+   info - Dangling library doc comment - lib\db\step_database.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: 'dart:math' - lib\models\step_candidate.dart:1:8 - unused_import
+   info - Dangling library doc comment - lib\providers\adaptive_threshold_provider.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\providers\insight_provider.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: 'package:flutter/foundation.dart' - lib\providers\step_provider.dart:1:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\history_screen.dart:85:85 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\history_screen.dart:94:81 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\history_screen.dart:203:118 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\history_screen.dart:210:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\history_screen.dart:236:97 - deprecated_member_use
+warning - Unused import: 'dart:math' - lib\screens\home_screen.dart:1:8 - unused_import
+warning - Unused import: '../services/gait_classifier.dart' - lib\screens\home_screen.dart:11:8 - unused_import
+warning - The value of the local variable 'profile' isn't used - lib\screens\home_screen.dart:45:11 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:93:54 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:131:55 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:133:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:218:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:263:24 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:278:47 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:330:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:400:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:412:34 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:455:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:496:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:505:36 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:579:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:623:43 - deprecated_member_use
+   info - The import of 'dart:typed_data' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/services.dart' - lib\screens\pushup_trainer_screen.dart:5:8 - unnecessary_import
+warning - The value of the local variable 'screen' isn't used - lib\screens\pushup_trainer_screen.dart:324:11 - unused_local_variable
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\splash_screen.dart:118:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\splash_screen.dart:141:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\splash_screen.dart:179:63 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\workout_screen.dart:143:63 - deprecated_member_use
+   info - Dangling library doc comment - lib\services\adaptive_threshold_service.dart:1:1 - dangling_library_doc_comments
+warning - Unused import: 'dart:convert' - lib\services\adaptive_threshold_service.dart:31:8 - unused_import
+warning - The value of the field '_loaded' isn't used - lib\services\adaptive_threshold_service.dart:221:8 - unused_field
+warning - Unused import: '../models/step_candidate.dart' - lib\services\anti_cheat_engine.dart:4:8 - unused_import
+warning - Unused import: '../constants/step_constants.dart' - lib\services\anti_cheat_engine.dart:5:8 - unused_import
+warning - Unused import: '../utils/logger.dart' - lib\services\anti_cheat_engine.dart:6:8 - unused_import
+warning - Unused import: 'context_validator.dart' - lib\services\anti_cheat_engine.dart:7:8 - unused_import
+   info - Statements in a for should be enclosed in a block - lib\services\anti_cheat_engine.dart:211:60 - curly_braces_in_flow_control_structures
+   info - The import of 'package:flutter_background_service_android/flutter_background_service_android.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter_background_service/flutter_background_service.dart' - lib\services\background_service.dart:4:8 - unnecessary_import
+warning - The value of the field '_db' isn't used - lib\services\badge_service.dart:29:20 - unused_field
+warning - Unused import: 'dart:math' - lib\services\barometer_service.dart:2:8 - unused_import
+warning - Unused import: 'package:pedometer/pedometer.dart' - lib\services\context_validator.dart:3:8 - unused_import
+   info - Dangling library doc comment - lib\services\gait_classifier.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\services\insight_engine.dart:1:1 - dangling_library_doc_comments
+warning - The '!' will have no effect because the receiver can't be null - lib\services\pushup_engine.dart:672:22 - unnecessary_non_null_assertion
+   info - Dangling library doc comment - lib\services\reconciliation_engine.dart:1:1 - dangling_library_doc_comments
+   info - Angle brackets will be interpreted as HTML - lib\services\reconciliation_engine.dart:21:13 - unintended_html_in_doc_comment
+   info - Dangling library doc comment - lib\services\thermal_drift_detector.dart:1:1 - dangling_library_doc_comments
+  error - Undefined class 'StepCandidate' - lib\services\thermal_drift_detector.dart:120:5 - undefined_class
+   info - Dangling library doc comment - lib\services\widget_service.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\utils\logger.dart:1:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\widgets\debug_panel.dart:1:1 - dangling_library_doc_comments
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\debug_panel.dart:31:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\debug_panel.dart:137:45 - deprecated_member_use
+   info - Dangling library doc comment - lib\widgets\insight_card.dart:1:1 - dangling_library_doc_comments
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\widgets\insight_card.dart:121:34 - deprecated_member_use
+warning - Unused import: 'package:pedometer/pedometer.dart' - test\hardware_pipeline_test.dart:3:8 - unused_import
+warning - Unused import: 'dart:math' - test\hardware_pipeline_test.dart:6:8 - unused_import
+   info - The local variable '_newEngine' starts with an underscore - test\reconciliation_engine_test.dart:17:32 - no_leading_underscores_for_local_identifiers
+warning - The value of the local variable 'count' isn't used - test\step_detector_test.dart:13:11 - unused_local_variable
+   info - Statements in an if should be enclosed in a block - test\step_detector_test.dart:46:12 - curly_braces_in_flow_control_structures
+

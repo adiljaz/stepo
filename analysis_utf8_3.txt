@@ -1,0 +1,18 @@
+﻿Analyzing stepooo...                                            
+
+warning - The value of the field 'neonPurple' isn't used - lib\screens\pushup_trainer_screen.dart:28:16 - unused_field
+warning - The declaration '_ActiveOverlay' isn't referenced - lib\screens\pushup_trainer_screen.dart:811:7 - unused_element
+  error - The method '_SessionInsightBanner' isn't defined for the type '_ActiveOverlay' - lib\screens\pushup_trainer_screen.dart:822:110 - undefined_method
+warning - The declaration '_SummaryStat' isn't referenced - lib\screens\pushup_trainer_screen.dart:934:7 - unused_element
+warning - The declaration '_Vignette' isn't referenced - lib\screens\pushup_trainer_screen.dart:956:7 - unused_element
+warning - The value of the field '_lastPrimaryFix' isn't used - lib\services\pushup_engine.dart:207:11 - unused_field
+warning - The value of the local variable 'lWristConf' isn't used - lib\services\pushup_engine.dart:240:82 - unused_local_variable
+warning - The value of the local variable 'rWristConf' isn't used - lib\services\pushup_engine.dart:240:98 - unused_local_variable
+warning - The value of the local variable 'lHipConf' isn't used - lib\services\pushup_engine.dart:240:114 - unused_local_variable
+warning - The value of the local variable 'rHipConf' isn't used - lib\services\pushup_engine.dart:240:128 - unused_local_variable
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:573:23 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:574:40 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:575:39 - curly_braces_in_flow_control_structures
+warning - The '!' will have no effect because the receiver can't be null - lib\services\pushup_engine.dart:638:22 - unnecessary_non_null_assertion
+warning - The operand can't be 'null', so the condition is always 'true' - lib\services\pushup_engine.dart:707:37 - unnecessary_null_comparison
+

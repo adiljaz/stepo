@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../constants/step_constants.dart';
-import '../providers/step_provider.dart';
+import '../services/v7/step_tracking_service_v7.dart';
 import '../providers/user_settings_provider.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
@@ -34,10 +34,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
 
     _logoCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1500),
     );
     _fadeLogo = CurvedAnimation(parent: _logoCtrl, curve: const Interval(0.0, 0.6, curve: Curves.easeIn));
-    _scaleLogo = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _scaleLogo = Tween<double>(begin: 0.7, end: 1.0).animate(
       CurvedAnimation(parent: _logoCtrl, curve: const Interval(0.0, 1.0, curve: Curves.elasticOut)),
     );
 
@@ -52,7 +52,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
 
     _logoCtrl.forward().then((_) => _textCtrl.forward());
 
-    Future.delayed(const Duration(milliseconds: kSplashMinDurationMs), () {
+    Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) {
         _minTimeDone = true;
         _attemptNavigation();
@@ -77,8 +77,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
     ].request();
 
     if (mounted) {
-      final service = ref.read(stepTrackingProvider.notifier);
-      await service.initialise();
+      // v7.0 Engine Warmup
+      await ref.read(stepTrackerProvider.notifier).initialize();
       _permissionsDone = true;
       _attemptNavigation();
     }
@@ -95,7 +95,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
-          transitionDuration: const Duration(milliseconds: 800),
+          transitionDuration: const Duration(milliseconds: 1000),
         ),
       );
     }
@@ -104,19 +104,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(kBackgroundColor),
+      backgroundColor: AppConfig.kBackgroundColor,
       body: Stack(
         children: [
-          // Subtle background gradient
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.2,
                   colors: [
-                    const Color(kPrimaryColor).withOpacity(0.05),
-                    const Color(kBackgroundColor),
+                    AppConfig.kPrimaryColor.withValues(alpha: 0.15),
+                    AppConfig.kBackgroundColor,
                   ],
                 ),
               ),
@@ -131,30 +130,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                   child: FadeTransition(
                     opacity: _fadeLogo,
                     child: Container(
-                      width: 140,
-                      height: 140,
+                      width: 160,
+                      height: 160,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppConfig.kSurfaceColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(kPrimaryColor).withOpacity(0.15),
-                            blurRadius: 40,
-                            offset: const Offset(0, 20),
+                            color: AppConfig.kPrimaryColor.withValues(alpha: 0.3),
+                            blurRadius: 60,
+                            spreadRadius: 10,
                           ),
                         ],
                       ),
                       child: const Center(
                         child: Icon(
                           Icons.directions_run_rounded,
-                          size: 72,
-                          color: Color(kPrimaryColor),
+                          size: 80,
+                          color: AppConfig.kPrimaryColor,
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 54),
                 FadeTransition(
                   opacity: _fadeText,
                   child: SlideTransition(
@@ -164,20 +163,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
                         Text(
                           'Stepooo',
                           style: GoogleFonts.outfit(
-                            fontSize: 42,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(kTextColor),
-                            letterSpacing: -1.5,
+                            fontSize: 48,
+                            fontWeight: FontWeight.w900,
+                            color: AppConfig.kTextColor,
+                            letterSpacing: -2.0,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         Text(
-                          'PREMIUM MOTION ENGINE',
+                          'v7.0 AI BIOMECHANICAL ENGINE',
                           style: GoogleFonts.outfit(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(kPrimaryColor).withOpacity(0.6),
-                            letterSpacing: 2,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppConfig.kAccentColor.withValues(alpha: 0.8),
+                            letterSpacing: 4,
                           ),
                         ),
                       ],
@@ -187,20 +186,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
               ],
             ),
           ),
-          // Version at bottom
           Positioned(
-            bottom: 40,
+            bottom: 50,
             left: 0,
             right: 0,
             child: Center(
               child: FadeTransition(
                 opacity: _fadeText,
                 child: Text(
-                  'Version 4.0.0 (Zero-Delay)',
+                  'RESEARCH GRADE MOTION TRACKING',
                   style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(kSecondaryTextColor),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: AppConfig.kSecondaryTextColor,
+                    letterSpacing: 2,
                   ),
                 ),
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../constants/app_constants.dart';
+
 
 /// Pill badge that displays the current activity status with colour coding.
 ///
@@ -36,25 +36,42 @@ class ActivityBadge extends StatelessWidget {
 
   _BadgeConfig _configForStatus(String status) {
     switch (status) {
-      case kStatusWalking:
+      case 'WALKING':
         return const _BadgeConfig(
           color: Color(0xFF22C55E),
           icon: Icons.directions_walk_rounded,
         );
-      case kStatusRunning:
+      case 'RUNNING':
         return const _BadgeConfig(
           color: Color(0xFF16A34A),
           icon: Icons.directions_run_rounded,
         );
-      case kStatusStill:
+      case 'STILL':
+      case 'STATIONARY':
         return const _BadgeConfig(
           color: Color(0xFFF59E0B),
           icon: Icons.pause_circle_outline_rounded,
         );
-      case kStatusVehicle:
+      case 'VEHICLE':
+      case 'IN_VEHICLE':
         return const _BadgeConfig(
           color: Color(0xFFEF4444),
           icon: Icons.directions_car_rounded,
+        );
+      case 'CYCLING':
+        return const _BadgeConfig(
+          color: Color(0xFF06B6D4), // Cyan
+          icon: Icons.directions_bike_rounded,
+        );
+      case 'STAIRS':
+        return const _BadgeConfig(
+          color: Color(0xFFF43F5E), // Rose
+          icon: Icons.stairs_rounded,
+        );
+      case 'SHUFFLING':
+        return const _BadgeConfig(
+          color: Color(0xFF64748B), // Slate
+          icon: Icons.nordic_walking_rounded,
         );
       case 'CALIBRATING':
         return const _BadgeConfig(

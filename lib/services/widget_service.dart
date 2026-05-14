@@ -1,10 +1,10 @@
-/// Feature 8 — Android Home Screen Widget Service
-///
-/// Uses the `home_widget` package to push live step data to the
-/// Android AppWidget (defined in res/layout/step_widget.xml).
-///
-/// Call [WidgetService.update] after every step batch emission.
-/// The widget XML reads these keys via RemoteViews.
+// Feature 8 — Android Home Screen Widget Service
+//
+// Uses the `home_widget` package to push live step data to the
+// Android AppWidget (defined in res/layout/step_widget.xml).
+//
+// Call [WidgetService.update] after every step batch emission.
+// The widget XML reads these keys via RemoteViews.
 
 import 'package:home_widget/home_widget.dart';
 import 'package:flutter/foundation.dart';

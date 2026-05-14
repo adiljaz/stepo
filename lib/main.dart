@@ -8,7 +8,7 @@ import 'constants/step_constants.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Background Service (Layer 7)
+  // Initialize Background Service (Stage 7 Reliability)
   await BackgroundTrackingService.initializeService();
 
   runApp(const ProviderScope(child: StepoooApp()));
@@ -20,16 +20,21 @@ class StepoooApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Stepooo',
+      title: 'Stepooo v7',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: AppConfig.kBackgroundColor,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(kPrimaryColor),
-          primary: const Color(kPrimaryColor),
-          surface: const Color(kBackgroundColor),
+          seedColor: AppConfig.kPrimaryColor,
+          primary: AppConfig.kPrimaryColor,
+          surface: AppConfig.kSurfaceColor,
+          brightness: Brightness.dark,
         ),
-        textTheme: GoogleFonts.interTextTheme(),
+        textTheme: GoogleFonts.outfitTextTheme(
+          ThemeData.dark().textTheme,
+        ),
       ),
       home: const SplashScreen(),
     );

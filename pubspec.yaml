@@ -16,12 +16,12 @@ dependencies:
   # Tracking Core
   pedometer: ^4.1.1
   sensors_plus: ^6.1.1
-  tflite_flutter: ^0.10.4
+  tflite_flutter: ^0.12.0
   
   # Background & Sync
   flutter_background_service: ^5.0.0
   flutter_background_service_android: ^6.0.0
-  health: 11.0.0
+  health: ^11.0.0
   shared_preferences: ^2.2.2
   path_provider: ^2.1.2
 
@@ -32,6 +32,7 @@ dependencies:
   go_router: ^13.0.0
   google_fonts: ^6.2.1
   battery_plus: ^7.0.0
+  device_info_plus: ^10.1.0   # Per-device sensor profiling (Improvement 2)
 
   # Phase 2 Features
   fl_chart: ^0.69.0                          # Historical bar charts
@@ -42,11 +43,17 @@ dependencies:
   latlong2: ^0.9.1                           # LatLng type for flutter_map
   lottie: ^3.1.2                             # Badge unlock animations
   home_widget: ^0.7.0                        # Android home-screen widget
+  crypto: ^3.0.3                             # MD5 for reconciliation step IDs
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  sqflite_common_ffi: ^2.3.3   # SQLite FFI for unit tests on desktop
+
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/models/

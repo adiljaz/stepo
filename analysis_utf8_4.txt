@@ -1,0 +1,14 @@
+﻿Analyzing stepooo...                                            
+
+warning - The value of the field 'neonPurple' isn't used - lib\screens\pushup_trainer_screen.dart:28:16 - unused_field
+warning - The declaration '_ActiveOverlay' isn't referenced - lib\screens\pushup_trainer_screen.dart:811:7 - unused_element
+  error - The method '_SessionInsightBanner' isn't defined for the type '_ActiveOverlay' - lib\screens\pushup_trainer_screen.dart:822:110 - undefined_method
+warning - The declaration '_SummaryStat' isn't referenced - lib\screens\pushup_trainer_screen.dart:934:7 - unused_element
+warning - The declaration '_Vignette' isn't referenced - lib\screens\pushup_trainer_screen.dart:956:7 - unused_element
+warning - The value of the field '_lastPrimaryFix' isn't used - lib\services\pushup_engine.dart:207:11 - unused_field
+warning - The value of the local variable 'lWristConf' isn't used - lib\services\pushup_engine.dart:240:82 - unused_local_variable
+warning - The value of the local variable 'rWristConf' isn't used - lib\services\pushup_engine.dart:240:98 - unused_local_variable
+warning - The value of the local variable 'lHipConf' isn't used - lib\services\pushup_engine.dart:240:114 - unused_local_variable
+warning - The value of the local variable 'rHipConf' isn't used - lib\services\pushup_engine.dart:240:128 - unused_local_variable
+warning - The left operand can't be null, so the right operand is never executed - lib\services\pushup_engine.dart:642:26 - dead_null_aware_expression
+

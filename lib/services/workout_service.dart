@@ -33,6 +33,7 @@ class WorkoutService extends ChangeNotifier {
   bool get isActive => _isActive;
   List<LatLng> get route => List.unmodifiable(_route);
   double get distanceKm => _calculateDistance(_route);
+  int? get startSteps => _isActive ? _startSteps : null;
 
   Future<void> startWorkout({required int currentSteps}) async {
     final permission = await Geolocator.checkPermission();

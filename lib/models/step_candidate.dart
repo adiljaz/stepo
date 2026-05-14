@@ -1,109 +1,35 @@
-import 'dart:math' as math;
-
+/// v7.0 Biomechanical Signal Snapshot.
 class StepCandidate {
   final DateTime timestamp;
   final double magnitude;
-  final double xRms;
-  final double yRms;
-  final double zRms;
-  final double gyroMagnitude;
-  final double magMagnitude; // Magnetometer magnitude
   final double jerk;
-  final double impactDuration;
-  final double interStepInterval;
-  final List<double> signalWindow; // Last 128 samples (Magnitude)
-  final List<double> xWindow; // Raw X for asymmetry/tremors
-  final List<double> yWindow; 
-  final List<double> zWindow;
-  final List<double> gyroWindow;
+  final double verticalAcc;
+  
+  // v7.0: 9-Axis Window for ML [1, 75, 9]
+  final List<List<double>> featureWindow;
 
   StepCandidate({
     required this.timestamp,
     required this.magnitude,
-    required this.xRms,
-    required this.yRms,
-    required this.zRms,
-    required this.gyroMagnitude,
-    required this.magMagnitude,
     required this.jerk,
-    required this.impactDuration,
-    required this.interStepInterval,
-    required this.signalWindow,
-    required this.xWindow,
-    required this.yWindow,
-    required this.zWindow,
-    required this.gyroWindow,
+    required this.verticalAcc,
+    required this.featureWindow,
   });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'timestamp': timestamp.toIso8601String(),
-      'magnitude': magnitude,
-      'xRms': xRms,
-      'yRms': yRms,
-      'zRms': zRms,
-      'gyroMagnitude': gyroMagnitude,
-      'magMagnitude': magMagnitude,
-      'jerk': jerk,
-      'impactDuration': impactDuration,
-      'interStepInterval': interStepInterval,
-      'signalWindow': signalWindow,
-      'xWindow': xWindow,
-      'yWindow': yWindow,
-      'zWindow': zWindow,
-      'gyroWindow': gyroWindow,
-    };
-  }
-
-  factory StepCandidate.fromJson(Map<String, dynamic> json) {
-    return StepCandidate(
-      timestamp: DateTime.parse(json['timestamp']),
-      magnitude: json['magnitude'],
-      xRms: json['xRms'],
-      yRms: json['yRms'],
-      zRms: json['zRms'],
-      gyroMagnitude: (json['gyroMagnitude'] as num).toDouble(),
-      magMagnitude: (json['magMagnitude'] as num).toDouble(),
-      jerk: (json['jerk'] as num).toDouble(),
-      impactDuration: (json['impactDuration'] as num).toDouble(),
-      interStepInterval: (json['interStepInterval'] as num).toDouble(),
-      signalWindow: (json['signalWindow'] as List).map((e) => (e as num).toDouble()).toList(),
-      xWindow: (json['xWindow'] as List).map((e) => (e as num).toDouble()).toList(),
-      yWindow: (json['yWindow'] as List).map((e) => (e as num).toDouble()).toList(),
-      zWindow: (json['zWindow'] as List).map((e) => (e as num).toDouble()).toList(),
-      gyroWindow: (json['gyroWindow'] as List).map((e) => (e as num).toDouble()).toList(),
-    );
-  }
 }
 
-class AntiCheatResult {
+/// Result from the Stage 6 Confirmation Engine.
+class ValidationResult {
   final bool approved;
-  final String? rejectionReason;
-  final double fraudScore;
-  final String gaitLabel;
+  final String? reason;
+  final int tier;
+  final double mlConfidence;
+  final double fftFreq;
 
-  AntiCheatResult({
+  ValidationResult({
     required this.approved,
-    this.rejectionReason,
-    required this.fraudScore,
-    required this.gaitLabel,
+    this.reason,
+    required this.tier,
+    required this.mlConfidence,
+    required this.fftFreq,
   });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'approved': approved,
-      'rejectionReason': rejectionReason,
-      'fraudScore': fraudScore,
-      'gaitLabel': gaitLabel,
-    };
-  }
-
-  factory AntiCheatResult.fromJson(Map<String, dynamic> json) {
-    return AntiCheatResult(
-      approved: json['approved'],
-      rejectionReason: json['rejectionReason'],
-      fraudScore: (json['fraudScore'] as num).toDouble(),
-      gaitLabel: json['gaitLabel'],
-    );
-  }
 }

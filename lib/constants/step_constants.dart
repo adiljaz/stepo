@@ -1,119 +1,84 @@
-// Stepooo v4.0 — Zero-Delay Production Engine Constants
-// All units are in SI (meters, seconds, g-force) unless specified.
+import 'package:flutter/material.dart';
+import '../models/user_profile.dart';
 
-/// Default daily step goal.
-const int kDefaultDailyGoal = 8000;
+/// Stepooo v7.0 — World-Class Biomechanical Engine Constants.
+///
+/// This configuration centralizes all thresholds for the 8-stage AI pipeline.
+/// All physical units are in SI (m/s², rad/s, seconds) unless specified.
+class AppConfig {
+  // ── Project Identity ───────────────────────────────────────────────────────
+  static const String kAppName = "Stepooo";
+  static const String kAppVersion = "7.0.0-AI";
 
-/// Average stride length in kilometers.
-const double kStrideKm = 0.000762;
-const double kDefaultStrideMeter = 0.762;
+  // ── STAGE 1 & 2: SENSE & FILTER ───────────────────────────────────────────
+  static const int kMinCalibrationTicks = 150; // ~3s at 50Hz
+  static const double kGemaAlpha = 0.2;        // Gravity EMA alpha
+  static const double kHpfAlpha = 0.85;        // Gravity removal alpha
+  
+  // Butterworth 2nd Order Band-pass (0.5Hz - 5.0Hz) @ 50Hz
+  // b = [0.0976, 0, -0.0976], a = [1.0, -1.7869, 0.8048]
+  static const List<double> kButterB = [0.0976, 0.0, -0.0976];
+  static const List<double> kButterA = [1.0, -1.7869, 0.8048];
 
-/// Energy expenditure estimates.
-const double kCaloriesPerStepWalk = 0.04;
-const double kCaloriesPerStepRun = 0.07;
+  // ── STAGE 3: DETECT (Pan-Tompkins Adaptive) ───────────────────────────────
+  static const int kMinStepIntervalMs = 250;
+  static const int kMaxStepIntervalMs = 2500;
+  static const double kPeakThresholdStdWeight = 0.6;
+  static const double kMaxIsiCv = 0.35;        // Symmetry check threshold
+  
+  // Jerk (m/s³) range
+  static const double kMinJerk = 5.0;
+  static const double kMaxJerk = 80.0;
 
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 1: SIGNAL CONDITIONING
-// ─────────────────────────────────────────────────────────────────────────
+  // Peak shape (ms)
+  static const int kMinRiseTimeMs = 80;
+  static const int kMaxRiseTimeMs = 200;
+  static const int kMinFallTimeMs = 80;
+  static const int kMaxFallTimeMs = 250;
 
-// --- Anti-Cheat Core Thresholds ---
-const double kMaxCadenceHz = 4.5;         // Usain Bolt limit
-const double kMinTremorRms = 0.003;       // Human biological floor (8-12Hz)
-const double kMagneticAnomalyLimit = 20.0; // uT above baseline (motor detection)
-const double kMinAsymmetryRatio = 0.04;   // 4% natural human variation
-const double kMaxAsymmetryRatio = 0.20;   // 20% limit for normal gait
-const double kMinShannonEntropy = 1.0;    // <1.0 is mechanical/metronome
-const double kMaxShannonEntropy = 5.0;    // >5.0 is random noise
-const double kMinGyroCorrelation = 0.40;  // Correlation between gyro/accel
-const double kMaxGpsEnergyRatio = 1.8;    // Max distance/step ratio
+  // ── STAGE 4: PARALLEL SOURCES ─────────────────────────────────────────────
+  static const double kHardwareGroundTruthTolerance = 0.15; // 15% limit
+  static const int kMlInputWindowSize = 75; // 1.5s at 50Hz
+  static const int kMlFeatureCount = 9;     // Acc(3) + Gyro(3) + Vert + Mag + Jerk
 
-// --- Anti-Cheat Actions ---
-const double kFraudSoftCorrect = 0.50;    // Start silent corrections
-const double kFraudHardFreeze = 0.75;     // Stop counting entirely
-const double kFraudSessionFlag = 0.95;    // Mark entire session invalid
+  // ── STAGE 5: AI & ML VALIDATION ───────────────────────────────────────────
+  static const double kMlMinConfidence = 0.85;
+  static const double kFftDominantFreqMin = 0.8;
+  static const double kFftDominantFreqMax = 2.5;
+  static const double kFftRunFreqMax = 4.0;
+  static const double kFftMechanicalFloor = 8.0;
+  static const double kMaxSpectralEntropy = 0.78;
 
-// --- Existing Constants ---
-const double kSamplingRateHz = 50.0;
-const int kCircularBufferSize = 256;
-const int kFilterWindowSize = 256;
-const int kRmsWindowSize = 64;
-const double kLowCutoffHz = 0.5;
-const double kHighCutoffHz = 5.0;
+  // ── STAGE 6: SMART CONFIRMATION ───────────────────────────────────────────
+  static const Duration kTier1Delay = Duration.zero;
+  static const Duration kTier2Delay = Duration(seconds: 2);
+  static const Duration kTier3Delay = Duration(seconds: 10);
+  
+  static double getTier1MlThreshold(AISensitivity s) => s == AISensitivity.strict ? 0.95 : (s == AISensitivity.normal ? 0.90 : 0.70);
+  static double getTier2MlThreshold(AISensitivity s) => s == AISensitivity.strict ? 0.85 : (s == AISensitivity.normal ? 0.75 : 0.50);
+  static double getTier3MlThreshold(AISensitivity s) => s == AISensitivity.strict ? 0.70 : (s == AISensitivity.normal ? 0.60 : 0.40);
 
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 2: PEAK DETECTION (The Zero-Delay Trigger)
-// ─────────────────────────────────────────────────────────────────────────
+  static const double kTier4FftThreshold = 0.85;
+  static const double kTier3FraudLimit = 0.60;
 
-const double kBaseThresholdG = 0.30; // Lowered from 1.1 for higher sensitivity
-const int kThresholdAdaptionWindow = 8;
-const double kThresholdAdaptionWeight = 0.6;
-const int kMinStepIntervalMs = 250; // Lowered from 350 to allow up to 240 bpm
-const int kWarmupSteps = 30; // Steps needed for calibration
-const int kRisingEdgeWindowMs = 100;
-const int kPeakLocalMaxWindow = 3;
+  // ── STAGE 7: RECONCILIATION ───────────────────────────────────────────────
+  static const Duration kReconcileInterval = Duration(seconds: 10);
+  static const double kRecoverMissedPct = 0.08; // 8%
 
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 3: ANOMALY SCORING
-// ─────────────────────────────────────────────────────────────────────────
+  // ── UI DESIGN TOKENS (Premium Palette) ────────────────────────────────────
+  static const Color kPrimaryColor = Color(0xFF3B82F6); // Professional Blue
+  static const Color kSecondaryColor = Color(0xFF2E2E2E); // Dark Grey
+  static const Color kAccentColor = Color(0xFF06B6D4); // Electric Cyan
+  static const Color kSuccessColor = Color(0xFF10B981); // Emerald Green
+  static const Color kWarningColor = Color(0xFFF59E0B); // Amber
+  static const Color kErrorColor = Color(0xFFEF4444); // Rose Red
+  static const Color kBackgroundColor = Color(0xFF0F172A); // Deep Slate
+  static const Color kSurfaceColor = Color(0xFF1E293B); // Elevated Slate
+  static const Color kTextColor = Color(0xFFF8FAFC); // Off-White
+  static const Color kSecondaryTextColor = Color(0xFF94A3B8); // Muted Slate
 
-const int kAnomalyWindowSize = 8;
-const double kMachineCvThreshold = 0.02;
-const double kHumanCvThreshold = 0.08;
-const double kShakeFreqThresholdHz = 3.2;
-const double kShakeMagThresholdG = 2.0;
-const double kMinVerticalAxisRatio = 0.40;
-const double kTargetVerticalAxisRatio = 0.55;
-const double kMachineAutocorrThreshold = 0.92;
-const double kHumanAutocorrThreshold = 0.70;
-
-const double kAnomalyScoreReject = 0.65;
-const int kMaxConsecutiveRejections = 20;
-
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 4: PERSONAL CALIBRATION
-// ─────────────────────────────────────────────────────────────────────────
-
-const int kCalibrationMinSteps = 10;
-const int kCalibrationDoneSteps = 30;
-
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 6: FENCING
-// ─────────────────────────────────────────────────────────────────────────
-
-const double kVehicleSpeedThresholdMs = 7.5; // 27 km/h
-const double kVehicleClearSpeedMs = 5.0;
-const int kVehicleConfirmDurationSec = 5;
-const double kStillRmsThresholdG = 0.03;
-const double kMotionRmsThresholdG = 0.05;
-const int kStillDetectionSec = 8;
-
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 8: HEALTH SYNC
-// ─────────────────────────────────────────────────────────────────────────
-
-const int kHealthSyncIntervalSec = 60;
-
-// ─────────────────────────────────────────────────────────────────────────
-// LAYER 9: RECONCILIATION
-// ─────────────────────────────────────────────────────────────────────────
-
-const int kReconcileIntervalSec = 10;
-const double kHardwareMissThreshold = 1.15;
-const double kSoftwareOvercountThreshold = 1.20;
-
-// ─────────────────────────────────────────────────────────────────────────
-// UI DESIGN TOKENS (Premium Palette)
-// ─────────────────────────────────────────────────────────────────────────
-
-const kPrimaryColor = 0xFF5D5FEF; // Modern Electric Indigo
-const kSecondaryColor = 0xFFFF6B6B; // Soft Coral
-const kAccentColor = 0xFF00D2FF;  // Cyan Accent
-const kSuccessColor = 0xFF34C759; // Apple-style Green
-const kWarningColor = 0xFFFF9500; // Apple-style Orange
-const kErrorColor = 0xFFFF3B30;   // Apple-style Red
-const kBackgroundColor = 0xFFF2F4F7; // Ultra-clean off-white
-const kSurfaceColor = 0xFFFFFFFF;
-const kTextColor = 0xFF1D1D1F; // Apple-style dark gray
-const kSecondaryTextColor = 0xFF86868B; // Apple-style muted gray
-
-const int kSplashMinDurationMs = 2200;
+  // --- Constants ---
+  static const double kStrideMeter = 0.762;
+  static const double kCaloriesPerStepWalk = 0.04;
+  static const double kCaloriesPerStepRun = 0.07;
+}

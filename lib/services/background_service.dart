@@ -1,7 +1,10 @@
+// ════════════════════════════════════════════════════════════════════════════
+// background_service.dart — High-Availability Tracking Isolate
+// ════════════════════════════════════════════════════════════════════════════
+
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 
 @pragma('vm:entry-point')
 class BackgroundTrackingService {

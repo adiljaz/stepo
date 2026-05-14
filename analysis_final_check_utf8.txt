@@ -1,0 +1,5 @@
+﻿Analyzing stepooo...                                            
+
+   info - Dangling library doc comment - lib\services\gait_classifier.dart:11:1 - dangling_library_doc_comments
+   info - Dangling library doc comment - lib\services\insight_engine.dart:11:1 - dangling_library_doc_comments
+

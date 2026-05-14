@@ -8,6 +8,8 @@ const _kWeight      = 'profile_weight';
 const _kHeight      = 'profile_height';
 const _kSex         = 'profile_sex';
 const _kGoal        = 'profile_goal';
+const _kStride      = 'profile_stride';
+const _kSensitivity = 'profile_sensitivity';
 const _kOnboarded   = 'onboarding_complete';
 
 class UserSettingsNotifier extends StateNotifier<UserProfile> {
@@ -24,6 +26,8 @@ class UserSettingsNotifier extends StateNotifier<UserProfile> {
       heightCm: p.getDouble(_kHeight) ?? 170,
       sex: p.getString(_kSex) ?? 'male',
       dailyGoalSteps: p.getInt(_kGoal) ?? 8000,
+      strideLengthMeters: p.getDouble(_kStride) ?? 0.762,
+      aiSensitivity: AISensitivity.values[p.getInt(_kSensitivity) ?? 1],
     );
   }
 
@@ -36,6 +40,8 @@ class UserSettingsNotifier extends StateNotifier<UserProfile> {
     await p.setDouble(_kHeight, profile.heightCm);
     await p.setString(_kSex, profile.sex);
     await p.setInt(_kGoal, profile.dailyGoalSteps);
+    await p.setDouble(_kStride, profile.strideLengthMeters);
+    await p.setInt(_kSensitivity, profile.aiSensitivity.index);
     await p.setBool(_kOnboarded, true);
   }
 

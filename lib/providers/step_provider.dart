@@ -1,19 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/v7/step_tracking_service_v7.dart';
 
-import '../services/step_tracking_service.dart';
-
-/// Global singleton provider for [StepTrackingService].
-///
-/// Riverpod ensures the service is created once and disposed when no longer
-/// needed. All UI widgets consume state via [stepStateProvider].
-final stepTrackingProvider = StateNotifierProvider<StepTrackingService, StepTrackingState>(
-  (ref) {
-    return StepTrackingService();
-  },
+/// Global singleton provider for the v7.0 Biomechanical Engine.
+final stepTrackerProvider = StateNotifierProvider<StepTrackingServiceV7, StepTrackerState>(
+  (ref) => StepTrackingServiceV7(),
 );
 
-/// Convenience provider that exposes the current [StepTrackingState] snapshot.
-final stepStateProvider = Provider<StepTrackingState>((ref) {
-  return ref.watch(stepTrackingProvider);
+/// Convenience provider for the UI to watch the latest AI tracking state.
+final stepStateProvider = Provider<StepTrackerState>((ref) {
+  return ref.watch(stepTrackerProvider);
 });

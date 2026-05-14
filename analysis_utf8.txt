@@ -1,0 +1,47 @@
+﻿Analyzing stepooo...                                            
+
+warning - The value of the field 'neonPurple' isn't used - lib\screens\pushup_trainer_screen.dart:28:16 - unused_field
+  error - Undefined name '_lastAnnouncement' - lib\screens\pushup_trainer_screen.dart:306:66 - undefined_identifier
+  error - The getter 'lastTopIssue' isn't defined for the type 'PushupAnalysisResult' - lib\screens\pushup_trainer_screen.dart:364:23 - undefined_getter
+  error - The getter 'lastTopIssue' isn't defined for the type 'PushupAnalysisResult' - lib\screens\pushup_trainer_screen.dart:365:45 - undefined_getter
+  error - Undefined name 'result' - lib\screens\pushup_trainer_screen.dart:422:30 - undefined_identifier
+  error - Undefined name 'result' - lib\screens\pushup_trainer_screen.dart:423:27 - undefined_identifier
+  error - The getter 'red' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:551:38 - undefined_getter
+warning - The declaration '_ActiveOverlay' isn't referenced - lib\screens\pushup_trainer_screen.dart:794:7 - unused_element
+  error - The method '_SessionInsightBanner' isn't defined for the type '_ActiveOverlay' - lib\screens\pushup_trainer_screen.dart:805:110 - undefined_method
+warning - The declaration '_SummaryStat' isn't referenced - lib\screens\pushup_trainer_screen.dart:917:7 - unused_element
+  error - The getter 'muted' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:921:107 - undefined_getter
+  error - The getter 'white' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:921:207 - undefined_getter
+  error - The getter 'accent' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:936:209 - undefined_getter
+warning - The declaration '_Vignette' isn't referenced - lib\screens\pushup_trainer_screen.dart:939:7 - unused_element
+  error - The getter 'white' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:949:257 - undefined_getter
+  error - The getter 'red' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:1022:197 - undefined_getter
+  error - The getter 'accent' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:1262:130 - undefined_getter
+  error - Invalid constant value - lib\screens\pushup_trainer_screen.dart:1269:190 - invalid_constant
+  error - The getter 'red' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:1269:193 - undefined_getter
+  error - The getter 'white' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:1269:295 - undefined_getter
+  error - The getter 'muted' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:1269:461 - undefined_getter
+  error - The getter 'accent' isn't defined for the type '_C' - lib\screens\pushup_trainer_screen.dart:1269:658 - undefined_getter
+warning - The value of the field '_lastPrimaryFix' isn't used - lib\services\pushup_engine.dart:204:11 - unused_field
+warning - The value of the local variable 'lWristConf' isn't used - lib\services\pushup_engine.dart:237:82 - unused_local_variable
+warning - The value of the local variable 'rWristConf' isn't used - lib\services\pushup_engine.dart:237:98 - unused_local_variable
+warning - The value of the local variable 'lHipConf' isn't used - lib\services\pushup_engine.dart:237:114 - unused_local_variable
+warning - The value of the local variable 'rHipConf' isn't used - lib\services\pushup_engine.dart:237:128 - unused_local_variable
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:497:14 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:498:19 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:499:19 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:500:19 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:501:19 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:502:19 - curly_braces_in_flow_control_structures
+  error - Local variable 'allPass' can't be referenced before it is declared - lib\services\pushup_engine.dart:504:19 - referenced_before_declaration
+  error - The final variable 'allPass' can't be read because it's potentially unassigned at this point - lib\services\pushup_engine.dart:504:19 - read_potentially_unassigned_final
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:563:23 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:564:40 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:565:39 - curly_braces_in_flow_control_structures
+warning - The '!' will have no effect because the receiver can't be null - lib\services\pushup_engine.dart:628:22 - unnecessary_non_null_assertion
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:655:32 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:656:37 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:657:36 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\services\pushup_engine.dart:658:12 - curly_braces_in_flow_control_structures
+warning - The operand can't be 'null', so the condition is always 'true' - lib\services\pushup_engine.dart:689:37 - unnecessary_null_comparison
+

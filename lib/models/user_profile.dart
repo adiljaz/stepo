@@ -1,3 +1,5 @@
+enum AISensitivity { strict, normal, forgiving }
+
 class UserProfile {
   final String name;
   final int ageYears;
@@ -5,6 +7,8 @@ class UserProfile {
   final double heightCm;
   final String sex; // 'male' | 'female'
   final int dailyGoalSteps;
+  final double strideLengthMeters;
+  final AISensitivity aiSensitivity;
 
   const UserProfile({
     this.name = '',
@@ -13,6 +17,8 @@ class UserProfile {
     this.heightCm = 170,
     this.sex = 'male',
     this.dailyGoalSteps = 8000,
+    this.strideLengthMeters = 0.762, // Default human average
+    this.aiSensitivity = AISensitivity.normal,
   });
 
   UserProfile copyWith({
@@ -22,6 +28,8 @@ class UserProfile {
     double? heightCm,
     String? sex,
     int? dailyGoalSteps,
+    double? strideLengthMeters,
+    AISensitivity? aiSensitivity,
   }) =>
       UserProfile(
         name: name ?? this.name,
@@ -30,5 +38,8 @@ class UserProfile {
         heightCm: heightCm ?? this.heightCm,
         sex: sex ?? this.sex,
         dailyGoalSteps: dailyGoalSteps ?? this.dailyGoalSteps,
+        strideLengthMeters: strideLengthMeters ?? this.strideLengthMeters,
+        aiSensitivity: aiSensitivity ?? this.aiSensitivity,
       );
 }
+

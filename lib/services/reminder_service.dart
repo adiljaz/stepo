@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../db/step_database.dart';
 
-/// Smart hourly reminder service.
+// Smart hourly reminder service.
 ///
 /// Logic: Between 9am–9pm, if the user has walked fewer than 250 steps in
 /// the past hour, fire a motivational push notification.  Automatically

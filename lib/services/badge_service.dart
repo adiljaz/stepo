@@ -1,4 +1,4 @@
-/// Achievement badge definitions and persistence.
+// Achievement badge definitions and persistence.
 library;
 
 import 'package:sqflite/sqflite.dart';
@@ -26,7 +26,6 @@ class AppBadge {
 
 class BadgeService {
   static const _table = 'badges';
-  static Database? _db;
 
   static final List<AppBadge> _definitions = [
     AppBadge(
@@ -67,9 +66,7 @@ class BadgeService {
   ];
 
   static Future<Database> _open() async {
-    // Use StepDatabase's shared connection so both tables are always
-    // guaranteed to exist before any query runs.
-    return StepDatabase.openDb();
+    return StepDatabase.getDatabase();
   }
 
   /// Returns newly earned badges given current stats.

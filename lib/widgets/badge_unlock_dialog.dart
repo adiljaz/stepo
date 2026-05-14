@@ -12,7 +12,7 @@ class BadgeUnlockDialog extends StatefulWidget {
       context: context,
       barrierDismissible: true,
       barrierLabel: '',
-      transitionDuration: const Duration(milliseconds: 400),
+      transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (ctx, _, __) => BadgeUnlockDialog(badge: badge),
       transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
         scale: CurvedAnimation(parent: anim, curve: Curves.elasticOut),
@@ -25,18 +25,15 @@ class BadgeUnlockDialog extends StatefulWidget {
   State<BadgeUnlockDialog> createState() => _BadgeUnlockDialogState();
 }
 
-class _BadgeUnlockDialogState extends State<BadgeUnlockDialog>
-    with SingleTickerProviderStateMixin {
+class _BadgeUnlockDialogState extends State<BadgeUnlockDialog> with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
-    _scale = Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _scale = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _ctrl, curve: Curves.elasticOut));
     _ctrl.forward();
   }
 
@@ -55,11 +52,12 @@ class _BadgeUnlockDialogState extends State<BadgeUnlockDialog>
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(28),
+            color: AppConfig.kSurfaceColor,
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: AppConfig.kWarningColor.withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
-                color: const Color(kPrimaryColor).withOpacity(0.3),
+                color: AppConfig.kWarningColor.withValues(alpha: 0.2),
                 blurRadius: 40,
                 offset: const Offset(0, 16),
               ),
@@ -68,52 +66,30 @@ class _BadgeUnlockDialogState extends State<BadgeUnlockDialog>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Gold glow ring
               Container(
-                width: 100,
-                height: 100,
+                width: 120, height: 120,
                 decoration: BoxDecoration(
-                  color: const Color(kWarningColor).withOpacity(0.1),
+                  color: AppConfig.kWarningColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
-                  border: Border.all(
-                      color: const Color(kWarningColor).withOpacity(0.4),
-                      width: 3),
+                  border: Border.all(color: AppConfig.kWarningColor.withValues(alpha: 0.4), width: 3),
                 ),
-                child: Center(
-                  child: Text(widget.badge.icon,
-                      style: const TextStyle(fontSize: 48)),
-                ),
+                child: Center(child: Text(widget.badge.icon, style: const TextStyle(fontSize: 54))),
               ),
-              const SizedBox(height: 16),
-              Text('Badge Unlocked!',
-                  style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(kWarningColor),
-                      letterSpacing: 1.5)),
-              const SizedBox(height: 8),
-              Text(widget.badge.title,
-                  style: GoogleFonts.outfit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(kTextColor))),
-              const SizedBox(height: 8),
-              Text(widget.badge.description,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      color: const Color(kSecondaryTextColor))),
               const SizedBox(height: 24),
+              Text('ACHIEVEMENT UNLOCKED', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppConfig.kWarningColor, letterSpacing: 2)),
+              const SizedBox(height: 8),
+              Text(widget.badge.title, style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w900, color: AppConfig.kTextColor)),
+              const SizedBox(height: 12),
+              Text(widget.badge.description, textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 15, color: AppConfig.kSecondaryTextColor, height: 1.4)),
+              const SizedBox(height: 32),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(kPrimaryColor),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  minimumSize: const Size(double.infinity, 48),
+                  backgroundColor: AppConfig.kPrimaryColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  minimumSize: const Size(double.infinity, 56),
                 ),
-                child: Text('Awesome!',
-                    style: GoogleFonts.outfit(fontWeight: FontWeight.w700)),
+                child: Text('Collect Badge', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800)),
               ),
             ],
           ),

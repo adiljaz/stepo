@@ -16,7 +16,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageCtrl = PageController();
   int _page = 0;
 
-  // Form state
   final _nameCtrl = TextEditingController();
   int _age = 28;
   double _weight = 70;
@@ -33,8 +32,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _next() {
     if (_page < 3) {
-      _pageCtrl.nextPage(
-          duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+      _pageCtrl.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.easeOutQuart);
       setState(() => _page++);
     } else {
       _finish();
@@ -52,35 +50,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
     await ref.read(userSettingsProvider.notifier).save(profile);
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
-      backgroundColor: const Color(kBackgroundColor),
-      resizeToAvoidBottomInset: true,
+      backgroundColor: AppConfig.kBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
-            // Progress dots
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 24),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(4, (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 400),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _page == i ? 24 : 8,
+                  width: _page == i ? 32 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: _page == i
-                        ? const Color(kPrimaryColor)
-                        : const Color(kPrimaryColor).withValues(alpha: 0.2),
+                    color: _page == i ? AppConfig.kPrimaryColor : AppConfig.kPrimaryColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 )),
@@ -99,32 +90,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       _height = height; _sex = sex;
                     }),
                   ),
-                  _GoalPage(
-                    goal: _goal,
-                    onChanged: (v) => setState(() => _goal = v),
-                  ),
+                  _GoalPage(goal: _goal, onChanged: (v) => setState(() => _goal = v)),
                   _ReadyPage(name: _nameCtrl.text.trim().isEmpty ? 'Athlete' : _nameCtrl.text.trim()),
                 ],
               ),
             ),
-            AnimatedPadding(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.fromLTRB(24, 0, 24, bottomInset > 0 ? 12 : 32),
+            Padding(
+              padding: const EdgeInsets.all(32),
               child: SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 60,
                 child: FilledButton(
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(kPrimaryColor),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
+                    backgroundColor: AppConfig.kPrimaryColor,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    elevation: 8,
+                    shadowColor: AppConfig.kPrimaryColor.withValues(alpha: 0.4),
                   ),
                   onPressed: _next,
                   child: Text(
-                    _page < 3 ? 'Continue' : 'Let\'s Go!',
-                    style: GoogleFonts.outfit(
-                        fontSize: 17, fontWeight: FontWeight.w700),
+                    _page < 3 ? 'Continue' : 'Start My Journey',
+                    style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -144,42 +130,30 @@ class _WelcomePage extends StatelessWidget {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
+          const SizedBox(height: 60),
           Container(
-            width: 90, height: 90,
-            decoration: BoxDecoration(
-              color: const Color(kPrimaryColor).withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.directions_run_rounded,
-                size: 48, color: Color(kPrimaryColor)),
+            width: 120, height: 120,
+            decoration: BoxDecoration(color: AppConfig.kPrimaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+            child: const Icon(Icons.auto_awesome_rounded, size: 64, color: AppConfig.kPrimaryColor),
           ),
-          const SizedBox(height: 24),
-          Text('Welcome to Stepooo', style: GoogleFonts.outfit(
-              fontSize: 26, fontWeight: FontWeight.w800,
-              color: const Color(kTextColor))),
-          const SizedBox(height: 10),
-          Text('Let\'s personalize your experience. What should we call you?',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.outfit(fontSize: 15,
-                  color: const Color(kSecondaryTextColor))),
-          const SizedBox(height: 28),
+          const SizedBox(height: 40),
+          Text('Your AI Coach Awaits', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
+          const SizedBox(height: 16),
+          Text('Experience research-grade step tracking calibrated specifically to your movement profile.', 
+            textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 16, color: AppConfig.kSecondaryTextColor)),
+          const SizedBox(height: 48),
           TextField(
             controller: nameCtrl,
             decoration: InputDecoration(
-              hintText: 'Your name (optional)',
+              hintText: 'Enter your name',
               filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: BorderSide.none),
-              prefixIcon: const Icon(Icons.person_outline_rounded),
+              fillColor: AppConfig.kSurfaceColor,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+              prefixIcon: const Icon(Icons.person_rounded, color: AppConfig.kPrimaryColor),
             ),
-            style: GoogleFonts.outfit(fontSize: 16),
+            style: GoogleFonts.outfit(fontSize: 18, color: AppConfig.kTextColor),
           ),
-          const SizedBox(height: 40),
         ],
       ),
     );
@@ -189,44 +163,28 @@ class _WelcomePage extends StatelessWidget {
 class _BodyPage extends StatelessWidget {
   final int age; final double weight, height; final String sex;
   final void Function(int, double, double, String) onChanged;
-  const _BodyPage({required this.age, required this.weight,
-      required this.height, required this.sex, required this.onChanged});
+  const _BodyPage({required this.age, required this.weight, required this.height, required this.sex, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(children: [
-        const SizedBox(height: 16),
-        Text('Your Profile', style: GoogleFonts.outfit(
-            fontSize: 26, fontWeight: FontWeight.w800,
-            color: const Color(kTextColor))),
-        const SizedBox(height: 8),
-        Text('Used for accurate MET-based calorie calculation',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(color: const Color(kSecondaryTextColor))),
-        const SizedBox(height: 32),
-        _SliderCard(
-          label: 'Age', value: age.toDouble(), min: 10, max: 90, divisions: 80,
-          unit: 'yrs', onChanged: (v) => onChanged(v.round(), weight, height, sex),
-        ),
-        const SizedBox(height: 16),
-        _SliderCard(
-          label: 'Weight', value: weight, min: 30, max: 200, divisions: 170,
-          unit: 'kg', onChanged: (v) => onChanged(age, v, height, sex),
-        ),
-        const SizedBox(height: 16),
-        _SliderCard(
-          label: 'Height', value: height, min: 100, max: 230, divisions: 130,
-          unit: 'cm', onChanged: (v) => onChanged(age, weight, v, sex),
-        ),
         const SizedBox(height: 20),
+        Text('Biometrics', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
+        const SizedBox(height: 12),
+        Text('We use these to calculate metabolic burn with AI precision.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor)),
+        const SizedBox(height: 40),
+        _SliderCard(label: 'Age', value: age.toDouble(), min: 10, max: 90, unit: 'yrs', onChanged: (v) => onChanged(v.round(), weight, height, sex)),
+        const SizedBox(height: 20),
+        _SliderCard(label: 'Weight', value: weight, min: 30, max: 180, unit: 'kg', onChanged: (v) => onChanged(age, v, height, sex)),
+        const SizedBox(height: 20),
+        _SliderCard(label: 'Height', value: height, min: 120, max: 220, unit: 'cm', onChanged: (v) => onChanged(age, weight, v, sex)),
+        const SizedBox(height: 32),
         Row(children: [
-          Expanded(child: _SexButton(label: 'Male', selected: sex == 'male',
-              onTap: () => onChanged(age, weight, height, 'male'))),
-          const SizedBox(width: 12),
-          Expanded(child: _SexButton(label: 'Female', selected: sex == 'female',
-              onTap: () => onChanged(age, weight, height, 'female'))),
+          Expanded(child: _SexButton(label: 'Male', selected: sex == 'male', onTap: () => onChanged(age, weight, height, 'male'))),
+          const SizedBox(width: 16),
+          Expanded(child: _SexButton(label: 'Female', selected: sex == 'female', onTap: () => onChanged(age, weight, height, 'female'))),
         ]),
       ]),
     );
@@ -236,25 +194,20 @@ class _BodyPage extends StatelessWidget {
 class _SliderCard extends StatelessWidget {
   final String label, unit;
   final double value, min, max;
-  final int divisions;
   final ValueChanged<double> onChanged;
-  const _SliderCard({required this.label, required this.value, required this.min,
-      required this.max, required this.divisions, required this.unit, required this.onChanged});
+  const _SliderCard({required this.label, required this.value, required this.min, required this.max, required this.unit, required this.onChanged});
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppConfig.kSurfaceColor, borderRadius: BorderRadius.circular(24)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(label, style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w600, color: const Color(kSecondaryTextColor))),
-          Text('${value.toStringAsFixed(label == 'Age' ? 0 : 1)} $unit',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w700,
-                  color: const Color(kPrimaryColor))),
+          Text(label, style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: AppConfig.kSecondaryTextColor)),
+          Text('${value.toStringAsFixed(0)} $unit', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: AppConfig.kPrimaryColor)),
         ]),
-        Slider(value: value, min: min, max: max, divisions: divisions,
-            activeColor: const Color(kPrimaryColor), onChanged: onChanged),
+        const SizedBox(height: 8),
+        Slider(value: value, min: min, max: max, activeColor: AppConfig.kPrimaryColor, inactiveColor: AppConfig.kPrimaryColor.withValues(alpha: 0.1), onChanged: onChanged),
       ]),
     );
   }
@@ -268,18 +221,14 @@ class _SexButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          color: selected ? const Color(kPrimaryColor) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected
-              ? const Color(kPrimaryColor)
-              : Colors.black12),
+          color: selected ? AppConfig.kPrimaryColor : AppConfig.kSurfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: selected ? [BoxShadow(color: AppConfig.kPrimaryColor.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))] : [],
         ),
-        child: Center(child: Text(label, style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : const Color(kTextColor)))),
+        child: Center(child: Text(label, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: selected ? Colors.white : AppConfig.kTextColor))),
       ),
     );
   }
@@ -290,9 +239,8 @@ class _GoalPage extends StatelessWidget {
   const _GoalPage({required this.goal, required this.onChanged});
 
   static const List<Map<String, dynamic>> _presets = [
-    {'label': 'Light', 'steps': 5000, 'desc': 'Easy daily activity'},
-    {'label': 'Moderate', 'steps': 8000, 'desc': 'WHO recommended'},
-    {'label': 'Active', 'steps': 10000, 'desc': 'Fitness focused'},
+    {'label': 'Moderate', 'steps': 8000, 'desc': 'Healthy daily habit'},
+    {'label': 'Active', 'steps': 10000, 'desc': 'Fitness enthusiast'},
     {'label': 'Athlete', 'steps': 15000, 'desc': 'High performance'},
   ];
 
@@ -303,41 +251,29 @@ class _GoalPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('Daily Goal', style: GoogleFonts.outfit(
-              fontSize: 26, fontWeight: FontWeight.w800,
-              color: const Color(kTextColor))),
-          const SizedBox(height: 8),
-          Text('How active do you want to be?', style: GoogleFonts.outfit(
-              color: const Color(kSecondaryTextColor))),
-          const SizedBox(height: 32),
+          Text('Daily Goal', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
+          const SizedBox(height: 12),
+          Text('How many steps do you want to conquer?', style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor)),
+          const SizedBox(height: 48),
           ..._presets.map((p) {
             final selected = goal == p['steps'] as int;
             return GestureDetector(
               onTap: () => onChanged(p['steps'] as int),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: selected ? const Color(kPrimaryColor) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: selected
-                      ? const Color(kPrimaryColor) : Colors.black12),
+                  color: selected ? AppConfig.kPrimaryColor : AppConfig.kSurfaceColor,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: selected ? [BoxShadow(color: AppConfig.kPrimaryColor.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))] : [],
                 ),
                 child: Row(children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(p['label'] as String, style: GoogleFonts.outfit(
-                            fontWeight: FontWeight.w700,
-                            color: selected ? Colors.white : const Color(kTextColor))),
-                        Text(p['desc'] as String, style: GoogleFonts.outfit(
-                            fontSize: 13,
-                            color: selected ? Colors.white70 : const Color(kSecondaryTextColor))),
-                      ])),
-                  Text('${((p['steps'] as int) / 1000).toStringAsFixed(0)}K steps',
-                      style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w700,
-                          color: selected ? Colors.white : const Color(kPrimaryColor))),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(p['label'] as String, style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w800, color: selected ? Colors.white : AppConfig.kTextColor)),
+                    Text(p['desc'] as String, style: GoogleFonts.outfit(fontSize: 14, color: selected ? Colors.white70 : AppConfig.kSecondaryTextColor)),
+                  ])),
+                  Text('${((p['steps'] as int) / 1000).toInt()}K', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w900, color: selected ? Colors.white : AppConfig.kPrimaryColor)),
                 ]),
               ),
             );
@@ -354,18 +290,14 @@ class _ReadyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(Icons.check_circle_rounded, size: 80, color: Color(kSuccessColor)),
-        const SizedBox(height: 24),
-        Text('You\'re all set, $name!', textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w800,
-                color: const Color(kTextColor))),
-        const SizedBox(height: 12),
-        Text('Your personalized Stepooo engine is ready.\nStart moving!',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(fontSize: 16,
-                color: const Color(kSecondaryTextColor))),
+        const Icon(Icons.verified_user_rounded, size: 100, color: AppConfig.kSuccessColor),
+        const SizedBox(height: 40),
+        Text('Ready, $name!', textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 36, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
+        const SizedBox(height: 20),
+        Text('Your v7.0 AI Biomechanical Engine has been calibrated and is ready to track your every move.', 
+          textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 16, color: AppConfig.kSecondaryTextColor, height: 1.5)),
       ]),
     );
   }
