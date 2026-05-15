@@ -65,17 +65,32 @@ class AppConfig {
   static const Duration kReconcileInterval = Duration(seconds: 10);
   static const double kRecoverMissedPct = 0.08; // 8%
 
-  // ── UI DESIGN TOKENS (Premium Palette) ────────────────────────────────────
-  static const Color kPrimaryColor = Color(0xFF3B82F6); // Professional Blue
-  static const Color kSecondaryColor = Color(0xFF2E2E2E); // Dark Grey
-  static const Color kAccentColor = Color(0xFF06B6D4); // Electric Cyan
-  static const Color kSuccessColor = Color(0xFF10B981); // Emerald Green
-  static const Color kWarningColor = Color(0xFFF59E0B); // Amber
-  static const Color kErrorColor = Color(0xFFEF4444); // Rose Red
-  static const Color kBackgroundColor = Color(0xFF0F172A); // Deep Slate
-  static const Color kSurfaceColor = Color(0xFF1E293B); // Elevated Slate
-  static const Color kTextColor = Color(0xFFF8FAFC); // Off-White
-  static const Color kSecondaryTextColor = Color(0xFF94A3B8); // Muted Slate
+  // ── UI DESIGN TOKENS (Cyber-Organic Aesthetic) ──────────────────────────
+  static const Color kPrimaryColor = Color(0xFFA3FF12); // Bio-Neon Green
+  static const Color kSecondaryColor = Color(0xFF7B61FF); // Pulse Violet
+  static const Color kAccentColor = Color(0xFF00F0FF); // Cyber Cyan
+  static const Color kSuccessColor = Color(0xFF00FF94); // Hyper Green
+  static const Color kWarningColor = Color(0xFFFFB800); // Solar Orange
+  static const Color kErrorColor = Color(0xFFFF2E2E); // Bio-Danger Red
+  static const Color kBackgroundColor = Color(0xFF05070A); // Midnight Deep
+  static const Color kSurfaceColor = Color(0xFF0E121A); // Cyber Slate
+  static const Color kTextColor = Color(0xFFF0F4FF); // Soft Ice White
+  static const Color kSecondaryTextColor = Color(0xFF6C7A9C); // Steel Blue Muted
+  
+  static const double kCardRadius = 24.0;
+  static const BorderRadius kOrganicRadius = BorderRadius.only(
+    topLeft: Radius.circular(32),
+    topRight: Radius.circular(12),
+    bottomLeft: Radius.circular(12),
+    bottomRight: Radius.circular(32),
+  );
+  
+  static List<BoxShadow> kCyberGlow(Color color) => [
+    BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 20, spreadRadius: -2),
+    BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 40, spreadRadius: -5),
+  ];
+
+  static const double kGlassBlur = 16.0;
 
   // --- Constants ---
   static const double kStrideMeter = 0.762;

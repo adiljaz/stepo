@@ -8,7 +8,7 @@ import '../models/daily_record.dart';
 /// Implements the 4-tier event logging and audit tables for the AI engine.
 class StepDatabase {
   static String dbName    = 'stepooo.db';
-  static const _version   = 5; 
+  static const _version   = 6; 
   
   static const _tableDaily      = 'daily_steps';
   static const _tableBadges     = 'badges';
@@ -20,6 +20,7 @@ class StepDatabase {
   static const _tableRejected     = 'rejected_steps';
   static const _tablePending      = 'pending_steps';
   static const _tableGaitSessions = 'gait_sessions';
+  static const _tableVehicleSessions = 'vehicle_sessions';
 
   static Database? _db;
 
@@ -33,7 +34,7 @@ class StepDatabase {
         await _createTables(db);
       },
       onUpgrade: (db, oldV, newV) async {
-        if (oldV < 5) {
+        if (oldV < 6) {
           await _createTables(db);
         }
       },
@@ -124,6 +125,17 @@ class StepDatabase {
         tier2_pct       REAL,
         tier3_pct       REAL,
         reject_pct      REAL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS $_tableVehicleSessions (
+        id              TEXT PRIMARY KEY,
+        type            TEXT NOT NULL,
+        start_time      TEXT NOT NULL,
+        end_time        TEXT,
+        avg_speed       REAL,
+        max_speed       REAL
       )
     ''');
 
@@ -258,6 +270,25 @@ class StepDatabase {
       'steps': steps,
       'at': at.toIso8601String(),
       'date': date,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static Future<void> logVehicleSession({
+    required String id,
+    required String type,
+    required DateTime startTime,
+    DateTime? endTime,
+    double? avgSpeed,
+    double? maxSpeed,
+  }) async {
+    final db = await getDatabase();
+    await db.insert(_tableVehicleSessions, {
+      'id': id,
+      'type': type,
+      'start_time': startTime.toIso8601String(),
+      'end_time': endTime?.toIso8601String(),
+      'avg_speed': avgSpeed,
+      'max_speed': maxSpeed,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 }

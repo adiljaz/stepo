@@ -1,48 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/step_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/step_tracker_cubit.dart';
 import '../constants/step_constants.dart';
+import '../services/v7/confirmation_engine.dart';
 
-class DebugPanel extends ConsumerWidget {
+class DebugPanel extends StatelessWidget {
   const DebugPanel({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(stepTrackerProvider);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+  Widget build(BuildContext context) {
+    return BlocBuilder<StepTrackerCubit, StepTrackerState>(
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('v7.0 AI ENGINE TELEMETRY', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 10)),
-              const Spacer(),
-              _statusChip("ENGINE ALIVE", Colors.greenAccent),
+              Row(
+                children: [
+                  const Text('v7.0 AI ENGINE TELEMETRY', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, fontSize: 10)),
+                  const Spacer(),
+                  _statusChip("ENGINE ALIVE", Colors.greenAccent),
+                ],
+              ),
+              const Divider(color: Colors.white12),
+              _buildRow('ML Confidence', '${(state.mlConfidence * 100).toStringAsFixed(1)}%'),
+              _buildRow('Spectral Freq', '${state.fftFreq.toStringAsFixed(2)} Hz'),
+              _buildRow('Current Tier', state.currentTier.name.toUpperCase(), color: _getTierColor(state.currentTier)),
+              _buildRow('Pending Steps', '${state.pendingSteps}'),
+              _buildRow('Rejected Today', '${state.rejectedToday}', color: state.rejectedToday > 0 ? Colors.redAccent : Colors.white70),
+              _buildRow('Total Steps', '${state.steps}', color: Colors.greenAccent),
+              if (state.lastStatus != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text('STATUS: ${state.lastStatus}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
             ],
           ),
-          const Divider(color: Colors.white12),
-          _buildRow('ML Confidence', '${(state.mlConfidence * 100).toStringAsFixed(1)}%'),
-          _buildRow('Spectral Freq', '${state.fftFreq.toStringAsFixed(2)} Hz'),
-          _buildRow('Current Tier', state.currentTier.name.toUpperCase(), color: _getTierColor(state.currentTier)),
-          _buildRow('Pending Steps', '${state.pendingSteps}'),
-          _buildRow('Rejected Today', '${state.rejectedToday}', color: state.rejectedToday > 0 ? Colors.redAccent : Colors.white70),
-          _buildRow('Software Count', '${state.steps}', color: Colors.greenAccent),
-          if (state.lastStatus != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text('STATUS: ${state.lastStatus}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold)),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -52,13 +55,13 @@ class DebugPanel extends ConsumerWidget {
     child: Text(label, style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold)),
   );
 
-  Color _getTierColor(dynamic tier) {
-    // Note: ConfirmationTier names should match
-    final name = tier.toString();
-    if (name.contains('tier1')) return AppConfig.kSuccessColor;
-    if (name.contains('tier2')) return AppConfig.kWarningColor;
-    if (name.contains('tier3')) return AppConfig.kAccentColor;
-    return AppConfig.kErrorColor;
+  Color _getTierColor(ConfirmationTier tier) {
+    switch (tier) {
+      case ConfirmationTier.tier1Instant: return AppConfig.kSuccessColor;
+      case ConfirmationTier.tier2Fast: return AppConfig.kWarningColor;
+      case ConfirmationTier.tier3Deep: return AppConfig.kAccentColor;
+      case ConfirmationTier.tier4Reject: return AppConfig.kErrorColor;
+    }
   }
 
   Widget _buildRow(String label, String value, {Color color = Colors.white70}) {

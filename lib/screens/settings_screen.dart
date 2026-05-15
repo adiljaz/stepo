@@ -1,96 +1,161 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../constants/step_constants.dart';
-import '../providers/user_settings_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/user_settings_cubit.dart';
 import '../models/user_profile.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(userSettingsProvider);
-
-    return Scaffold(
-      backgroundColor: AppConfig.kBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('Settings', style: GoogleFonts.outfit(color: AppConfig.kTextColor, fontWeight: FontWeight.bold)),
-        iconTheme: const IconThemeData(color: AppConfig.kTextColor),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text('AI TRACKING SENSITIVITY', style: GoogleFonts.outfit(fontSize: 12, color: AppConfig.kPrimaryColor, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-          const SizedBox(height: 16),
-          _buildSensitivitySegmentedButton(context, ref, profile.aiSensitivity),
-          const SizedBox(height: 12),
-          Text(
-            _getSensitivityDescription(profile.aiSensitivity),
-            style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontSize: 13),
+  Widget build(BuildContext context) {
+    return BlocBuilder<UserSettingsCubit, UserProfile>(
+      builder: (context, profile) {
+        return Scaffold(
+          backgroundColor: AppConfig.kBackgroundColor,
+          body: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                pinned: true,
+                expandedHeight: 140,
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 24, bottom: 20),
+                  title: Text(
+                    'SETTINGS',
+                    style: GoogleFonts.outfit(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: AppConfig.kTextColor,
+                    ),
+                  ),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.all(24),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildSectionHeader('ENGINE SENSITIVITY'),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppConfig.kSurfaceColor,
+                        borderRadius: BorderRadius.circular(AppConfig.kCardRadius),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSensitivityOption(context, profile, AISensitivity.forgiving, 'Relaxed'),
+                          const Divider(color: Colors.white10),
+                          _buildSensitivityOption(context, profile, AISensitivity.normal, 'Balanced'),
+                          const Divider(color: Colors.white10),
+                          _buildSensitivityOption(context, profile, AISensitivity.strict, 'Strict'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    _buildSectionHeader('HARDWARE INTEGRATION'),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppConfig.kSurfaceColor,
+                        borderRadius: BorderRadius.circular(AppConfig.kCardRadius),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                        onTap: () => Permission.ignoreBatteryOptimizations.request(),
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppConfig.kPrimaryColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.bolt_rounded, color: AppConfig.kPrimaryColor),
+                        ),
+                        title: Text('Background Execution', style: GoogleFonts.outfit(color: AppConfig.kTextColor, fontWeight: FontWeight.w700, fontSize: 16)),
+                        subtitle: Text('Prevent system sleep interrupts', style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
+                        trailing: const Icon(Icons.chevron_right_rounded, color: AppConfig.kSecondaryTextColor),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    _buildSectionHeader('DATA PRIVACY & SAFETY'),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppConfig.kSurfaceColor,
+                        borderRadius: BorderRadius.circular(AppConfig.kCardRadius),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildPrivacyTile(Icons.security_rounded, '100% Local Processing', 'All sensor data stays on your device. We do not use any external cloud for AI processing.'),
+                          const Divider(color: Colors.white10, height: 32),
+                          _buildPrivacyTile(Icons.visibility_off_rounded, 'No Data Selling', 'Your fitness and biometric data is yours. We never share or sell information to third parties.'),
+                          const Divider(color: Colors.white10, height: 32),
+                          _buildPrivacyTile(Icons.delete_forever_rounded, 'Anonymized Tracking', 'Location data for workouts is stored only in local history and is never linked to your identity.'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 120),
+                  ]),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 40),
-          Text('SYSTEM PERMISSIONS', style: GoogleFonts.outfit(fontSize: 12, color: AppConfig.kPrimaryColor, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
-          const SizedBox(height: 16),
-          ListTile(
-            tileColor: AppConfig.kSurfaceColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            leading: const Icon(Icons.battery_charging_full_rounded, color: AppConfig.kAccentColor),
-            title: Text('Battery Optimization', style: GoogleFonts.outfit(color: AppConfig.kTextColor, fontWeight: FontWeight.w600)),
-            subtitle: Text('Prevent Android from stopping the step tracker in the background.', style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontSize: 12)),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded, color: AppConfig.kSecondaryTextColor, size: 16),
-            onTap: () async {
-              await Permission.ignoreBatteryOptimizations.request();
-            },
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildSensitivitySegmentedButton(BuildContext context, WidgetRef ref, AISensitivity current) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppConfig.kSurfaceColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: SegmentedButton<AISensitivity>(
-        segments: const [
-          ButtonSegment(value: AISensitivity.forgiving, label: Text('Forgiving')),
-          ButtonSegment(value: AISensitivity.normal, label: Text('Normal')),
-          ButtonSegment(value: AISensitivity.strict, label: Text('Strict')),
-        ],
-        selected: {current},
-        onSelectionChanged: (Set<AISensitivity> selection) {
-          final p = ref.read(userSettingsProvider);
-          ref.read(userSettingsProvider.notifier).save(p.copyWith(aiSensitivity: selection.first));
-        },
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-            if (states.contains(WidgetState.selected)) return AppConfig.kPrimaryColor;
-            return Colors.transparent;
-          }),
-          foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
-            if (states.contains(WidgetState.selected)) return AppConfig.kBackgroundColor;
-            return AppConfig.kTextColor;
-          }),
+  Widget _buildSectionHeader(String title) => Text(
+        title,
+        style: GoogleFonts.outfit(fontSize: 12, color: AppConfig.kPrimaryColor, fontWeight: FontWeight.w800, letterSpacing: 1.5),
+      );
+
+  Widget _buildSensitivityOption(BuildContext context, UserProfile profile, AISensitivity s, String label) {
+    final isSelected = profile.aiSensitivity == s;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        context.read<UserSettingsCubit>().save(profile.copyWith(aiSensitivity: s));
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(
+          children: [
+            Text(label, style: GoogleFonts.outfit(color: isSelected ? AppConfig.kPrimaryColor : AppConfig.kTextColor, fontSize: 18, fontWeight: FontWeight.w700)),
+            const Spacer(),
+            if (isSelected) Icon(Icons.check_circle_rounded, color: AppConfig.kPrimaryColor, size: 20),
+          ],
         ),
       ),
     );
   }
 
-  String _getSensitivityDescription(AISensitivity s) {
-    switch (s) {
-      case AISensitivity.forgiving:
-        return "Best for softer steps, shuffles, or limps. Reduces false-positive rejection.";
-      case AISensitivity.normal:
-        return "Standard tracking mode. Balances accuracy and anti-cheat protection.";
-      case AISensitivity.strict:
-        return "Maximum anti-cheat. Highly rejects non-walking movements. Best for running.";
-    }
+  Widget _buildPrivacyTile(IconData icon, String title, String desc) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: AppConfig.kPrimaryColor, size: 20),
+            const SizedBox(width: 12),
+            Text(title, style: GoogleFonts.outfit(color: AppConfig.kTextColor, fontSize: 16, fontWeight: FontWeight.w700)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(desc, style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontSize: 13, fontWeight: FontWeight.w500, height: 1.4)),
+      ],
+    );
   }
 }
+

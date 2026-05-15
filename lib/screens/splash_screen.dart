@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import '../constants/step_constants.dart';
-import '../services/v7/step_tracking_service_v7.dart';
-import '../providers/user_settings_provider.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/step_tracker_cubit.dart';
+import '../cubits/user_settings_cubit.dart';
 
-class SplashScreen extends ConsumerStatefulWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late final AnimationController _logoCtrl;
   late final Animation<double> _fadeLogo;
   late final Animation<double> _scaleLogo;
@@ -77,8 +76,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
     ].request();
 
     if (mounted) {
-      // v7.0 Engine Warmup
-      await ref.read(stepTrackerProvider.notifier).initialize();
+      context.read<StepTrackerCubit>().initialize();
       _permissionsDone = true;
       _attemptNavigation();
     }
@@ -86,7 +84,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with TickerProvider
 
   void _attemptNavigation() async {
     if (_permissionsDone && _minTimeDone && mounted) {
-      final onboarded = await UserSettingsNotifier.isOnboarded();
+      final onboarded = await UserSettingsCubit.isOnboarded();
       if (!mounted) return;
       final destination = onboarded ? const HomeScreen() : const OnboardingScreen();
       Navigator.of(context).pushReplacement(

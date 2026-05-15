@@ -1,5 +1,5 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_profile.dart';
 
 const _kName        = 'profile_name';
@@ -12,14 +12,14 @@ const _kStride      = 'profile_stride';
 const _kSensitivity = 'profile_sensitivity';
 const _kOnboarded   = 'onboarding_complete';
 
-class UserSettingsNotifier extends StateNotifier<UserProfile> {
-  UserSettingsNotifier() : super(const UserProfile()) {
+class UserSettingsCubit extends Cubit<UserProfile> {
+  UserSettingsCubit() : super(const UserProfile()) {
     _load();
   }
 
   Future<void> _load() async {
     final p = await SharedPreferences.getInstance();
-    state = UserProfile(
+    emit(UserProfile(
       name: p.getString(_kName) ?? '',
       ageYears: p.getInt(_kAge) ?? 30,
       weightKg: p.getDouble(_kWeight) ?? 70,
@@ -28,11 +28,11 @@ class UserSettingsNotifier extends StateNotifier<UserProfile> {
       dailyGoalSteps: p.getInt(_kGoal) ?? 8000,
       strideLengthMeters: p.getDouble(_kStride) ?? 0.762,
       aiSensitivity: AISensitivity.values[p.getInt(_kSensitivity) ?? 1],
-    );
+    ));
   }
 
   Future<void> save(UserProfile profile) async {
-    state = profile;
+    emit(profile);
     final p = await SharedPreferences.getInstance();
     await p.setString(_kName, profile.name);
     await p.setInt(_kAge, profile.ageYears);
@@ -52,8 +52,3 @@ class UserSettingsNotifier extends StateNotifier<UserProfile> {
     return p.getBool(_kOnboarded) ?? false;
   }
 }
-
-final userSettingsProvider =
-    StateNotifierProvider<UserSettingsNotifier, UserProfile>(
-  (_) => UserSettingsNotifier(),
-);

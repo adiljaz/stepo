@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/step_constants.dart';
-import '../providers/insight_provider.dart';
+import '../cubits/insight_cubit.dart';
 import '../services/insight_engine.dart';
 
-class InsightCarousel extends ConsumerStatefulWidget {
+class InsightCarousel extends StatefulWidget {
   const InsightCarousel({super.key});
   @override
-  ConsumerState<InsightCarousel> createState() => _InsightCarouselState();
+  State<InsightCarousel> createState() => _InsightCarouselState();
 }
 
-class _InsightCarouselState extends ConsumerState<InsightCarousel> {
+class _InsightCarouselState extends State<InsightCarousel> {
   final PageController _pageCtrl = PageController(viewportFraction: 0.92);
   int _currentPage = 0;
 
@@ -23,16 +23,21 @@ class _InsightCarouselState extends ConsumerState<InsightCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    final async = ref.watch(insightProvider);
-    return async.when(
-      data: (insights) => _buildCarousel(insights),
-      loading: () => _buildSkeleton(),
-      error: (e, _) => const SizedBox.shrink(),
+    return BlocBuilder<InsightCubit, InsightState>(
+      builder: (context, state) {
+        if (state is InsightLoaded) {
+          return _buildCarousel(state.insights);
+        } else if (state is InsightLoading) {
+          return _buildSkeleton();
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
   Widget _buildCarousel(List<Insight> insights) {
-    if (insights.isEmpty) return const SizedBox.shrink();
+    final filtered = insights.where((i) => !i.isDismissed).toList();
+    if (filtered.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,9 +45,9 @@ class _InsightCarouselState extends ConsumerState<InsightCarousel> {
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
             children: [
-              Text('AI INSIGHTS', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppConfig.kTextColor, letterSpacing: 1)),
+              Text('INSIGHTS', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppConfig.kTextColor, letterSpacing: 1)),
               const Spacer(),
-              ...List.generate(insights.length, (i) => AnimatedContainer(
+              ...List.generate(filtered.length, (i) => AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 margin: const EdgeInsets.only(left: 4),
                 width: _currentPage == i ? 16 : 6, height: 6,
@@ -55,15 +60,16 @@ class _InsightCarouselState extends ConsumerState<InsightCarousel> {
           height: 140,
           child: PageView.builder(
             controller: _pageCtrl,
-            itemCount: insights.length,
+            itemCount: filtered.length,
             onPageChanged: (i) => setState(() => _currentPage = i),
             itemBuilder: (_, i) => Padding(
               padding: const EdgeInsets.only(right: 12),
               child: InsightCard(
-                insight: insights[i],
+                insight: filtered[i],
                 onDismiss: () {
-                  insights[i].isDismissed = true;
-                  ref.invalidate(insightProvider);
+                  setState(() {
+                    filtered[i].isDismissed = true;
+                  });
                 },
               ),
             ),

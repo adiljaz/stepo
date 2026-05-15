@@ -10,13 +10,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   cupertino_icons: ^1.0.8
 
+  # State Management
+  flutter_bloc: ^8.1.6
+  
   # Tracking Core
   pedometer: ^4.1.1
   sensors_plus: ^6.1.1
-  tflite_flutter: ^0.12.0
   
   # Background & Sync
   flutter_background_service: ^5.0.0
@@ -28,22 +29,20 @@ dependencies:
   # Utils & UI
   geolocator: ^13.0.1
   permission_handler: ^11.0.0
-  flutter_riverpod: ^2.5.0
   go_router: ^13.0.0
   google_fonts: ^6.2.1
   battery_plus: ^7.0.0
-  device_info_plus: ^10.1.0   # Per-device sensor profiling (Improvement 2)
-
-  # Phase 2 Features
-  fl_chart: ^0.69.0                          # Historical bar charts
-  sqflite: ^2.3.3+1                          # Local SQLite database
-  path: ^1.9.0                               # Path helpers for sqflite
-  flutter_local_notifications: ^18.0.0       # Smart hourly reminders
-  flutter_map: ^7.0.2                        # GPS route map (OpenStreetMap)
-  latlong2: ^0.9.1                           # LatLng type for flutter_map
-  lottie: ^3.1.2                             # Badge unlock animations
-  home_widget: ^0.7.0                        # Android home-screen widget
-  crypto: ^3.0.3                             # MD5 for reconciliation step IDs
+  device_info_plus: ^10.1.0
+  fl_chart: ^0.69.0
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+  flutter_local_notifications: ^18.0.0
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  lottie: ^3.1.2
+  home_widget: ^0.7.0
+  crypto: ^3.0.3
+  flutter_staggered_grid_view: ^0.7.0
 
 
 dev_dependencies:
@@ -57,3 +56,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/models/
+    - assets/images/

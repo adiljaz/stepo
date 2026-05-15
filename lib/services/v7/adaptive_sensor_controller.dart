@@ -96,10 +96,28 @@ class AdaptiveSensorController {
     AppLogger.i('AdaptiveSensor', 'Sensors RESUMED.');
   }
 
+  void setPowerMode(PowerMode mode) {
+    AppLogger.i('AdaptiveSensor', 'Switching to POWER_MODE: ${mode.name}');
+    _accSub?.cancel();
+    _gyroSub?.cancel();
+    
+    final interval = mode == PowerMode.low ? const Duration(milliseconds: 100) : SensorInterval.gameInterval;
+    
+    _accSub = accelerometerEventStream(samplingPeriod: interval).listen((acc) {
+      _processTick(acc.x, acc.y, acc.z, true);
+    });
+
+    _gyroSub = gyroscopeEventStream(samplingPeriod: interval).listen((gyro) {
+      _processTick(gyro.x, gyro.y, gyro.z, false);
+    });
+  }
+
   void stop() {
     _accSub?.cancel();
     _gyroSub?.cancel();
     AppLogger.i('AdaptiveSensor', 'Sensors stopped.');
   }
 }
+
+enum PowerMode { normal, low }
 

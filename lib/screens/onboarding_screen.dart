@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/step_constants.dart';
 import '../models/user_profile.dart';
-import '../providers/user_settings_provider.dart';
 import 'home_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/user_settings_cubit.dart';
 
-class OnboardingScreen extends ConsumerStatefulWidget {
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
   @override
-  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageCtrl = PageController();
   int _page = 0;
 
@@ -48,7 +48,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       sex: _sex,
       dailyGoalSteps: _goal,
     );
-    await ref.read(userSettingsProvider.notifier).save(profile);
+    await context.read<UserSettingsCubit>().save(profile);
     if (mounted) {
       Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
@@ -171,9 +171,9 @@ class _BodyPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(children: [
         const SizedBox(height: 20),
-        Text('Biometrics', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
+        Text('Your Stats', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
         const SizedBox(height: 12),
-        Text('We use these to calculate metabolic burn with AI precision.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor)),
+        Text('We use these to calculate metabolic burn with precision.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor)),
         const SizedBox(height: 40),
         _SliderCard(label: 'Age', value: age.toDouble(), min: 10, max: 90, unit: 'yrs', onChanged: (v) => onChanged(v.round(), weight, height, sex)),
         const SizedBox(height: 20),
@@ -296,7 +296,7 @@ class _ReadyPage extends StatelessWidget {
         const SizedBox(height: 40),
         Text('Ready, $name!', textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 36, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, letterSpacing: -1)),
         const SizedBox(height: 20),
-        Text('Your v7.0 AI Biomechanical Engine has been calibrated and is ready to track your every move.', 
+        Text('Your health engine has been calibrated and is ready to track your every move.', 
           textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 16, color: AppConfig.kSecondaryTextColor, height: 1.5)),
       ]),
     );
