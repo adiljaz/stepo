@@ -1,35 +1,32 @@
 import '../../utils/logger.dart';
 
 class StrideCalibrator {
-  int _stepStart = 0;
-  double _distanceStartMeters = 0.0;
-  bool _isCalibrating = false;
-
-  /// Starts a calibration phase, recording the baseline steps and GPS distance
-  void startCalibration(int currentSteps, double currentDistanceMeters) {
-    _stepStart = currentSteps;
-    _distanceStartMeters = currentDistanceMeters;
-    _isCalibrating = true;
-    AppLogger.i('StrideCalibrator', 'Calibration phase started.');
-  }
-
-  /// Ends the calibration phase and returns the highly accurate, personalized stride length in meters.
-  /// Returns null if not enough distance was covered to be statistically significant.
-  double? endCalibration(int currentSteps, double currentDistanceMeters) {
-    if (!_isCalibrating) return null;
-    _isCalibrating = false;
-
-    final stepsTaken = currentSteps - _stepStart;
-    final distanceTraveled = currentDistanceMeters - _distanceStartMeters;
-
-    // Require at least 100 steps or 50 meters of continuous outdoor walking to prevent noisy GPS data
-    if (stepsTaken > 100 && distanceTraveled > 50.0) {
-      final customStride = distanceTraveled / stepsTaken;
-      AppLogger.i('StrideCalibrator', 'Calibration complete! New biological stride length: ${customStride.toStringAsFixed(3)} meters');
-      return customStride;
-    }
+  double _baseStride = 0.762; // Default (Average human stride)
+  
+  /// Calculates dynamic stride length based on current cadence (Steps Per Minute).
+  /// Human biology: faster cadence = longer stride.
+  double calculateDynamicStride(int spm) {
+    if (spm < 40) return _baseStride * 0.75; // Shuffling / Stationary
+    if (spm > 180) return _baseStride * 1.45; // Sprinting
     
-    AppLogger.w('StrideCalibrator', 'Calibration aborted: Not enough distance traveled for statistical significance.');
-    return null;
+    // Logarithmic-linear scaling:
+    // At 100 SPM (Normal Walk) -> 1.0x Base
+    // At 150 SPM (Jogging)     -> 1.25x Base
+    // At 180 SPM (Running)     -> 1.45x Base
+    final scale = 1.0 + (spm - 100) * 0.0055;
+    return (_baseStride * scale).clamp(_baseStride * 0.7, _baseStride * 1.6);
   }
+
+  /// Real-time GPS-assisted calibration.
+  /// Call this when GPS accuracy is high to refine the user's base stride.
+  void calibrateFromGps(int stepsDelta, double distanceDeltaMeters) {
+    if (stepsDelta > 50 && distanceDeltaMeters > 30) {
+      final calculatedBase = distanceDeltaMeters / stepsDelta;
+      // Use alpha-filter to prevent sudden jumps
+      _baseStride = (_baseStride * 0.9) + (calculatedBase * 0.1);
+      AppLogger.i('StrideCalibrator', 'GPS_CALIBRATION: Base Stride refined to ${_baseStride.toStringAsFixed(3)}m');
+    }
+  }
+
+  double get baseStride => _baseStride;
 }

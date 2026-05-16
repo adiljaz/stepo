@@ -31,6 +31,10 @@ class BackgroundTrackingService {
 
   @pragma('vm:entry-point')
   static void onStart(ServiceInstance service) async {
+    int currentSteps = 0;
+    int goalSteps = 10000;
+    String locomotion = "Stationary";
+
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) {
         service.setAsForegroundService();
@@ -39,36 +43,54 @@ class BackgroundTrackingService {
       service.on('setAsBackground').listen((event) {
         service.setAsBackgroundService();
       });
+
+      service.on('updateNotification').listen((event) {
+        if (event != null) {
+          currentSteps = event['steps'] ?? currentSteps;
+          goalSteps = event['goal'] ?? goalSteps;
+          locomotion = event['locomotion'] ?? locomotion;
+          final double distance = event['distance'] ?? 0.0;
+          final double calories = event['calories'] ?? 0.0;
+          
+          final progress = (currentSteps / goalSteps).clamp(0.0, 1.0);
+          final bar = _generateColorfulBar(progress);
+          final percent = (progress * 100).toInt();
+          
+          service.setForegroundNotificationInfo(
+            title: "𝕊𝕋𝔼ℙ𝕆𝕆𝕆 ℙℝ𝕆 — $locomotion",
+            content: "$bar  $percent%\n"
+                     "🏃 $currentSteps steps  |  🏁 $goalSteps goal\n"
+                     "⚡ ${distance.toStringAsFixed(2)} KM  |  🔥 ${calories.toStringAsFixed(0)} KCAL",
+          );
+        }
+      });
     }
 
     service.on('stopService').listen((event) {
       service.stopSelf();
     });
 
-    // Immediate notification to prevent crash
-    if (service is AndroidServiceInstance) {
-      service.setForegroundNotificationInfo(
-        title: "Stepooo — Active",
-        content: "Step tracking is running...",
-      );
-    }
-
     // Background logic loop
     Timer.periodic(const Duration(seconds: 1), (timer) async {
-      if (service is AndroidServiceInstance) {
-        if (await service.isForegroundService()) {
-          service.setForegroundNotificationInfo(
-            title: "Stepooo — Active",
-            content: "Step tracking is running...",
-          );
-        }
-      }
-
-      // Here you would communicate with the main isolate to share state
       service.invoke('update', {
         "current_date": DateTime.now().toIso8601String(),
       });
     });
+  }
+
+  static String _generateColorfulBar(double progress) {
+    const int totalBlocks = 12;
+    final int filledBlocks = (progress * totalBlocks).round();
+    final buffer = StringBuffer("");
+    
+    for (int i = 0; i < totalBlocks; i++) {
+      if (i < filledBlocks) {
+        buffer.write("🟩"); // Green for filled
+      } else {
+        buffer.write("⬜"); // White for empty
+      }
+    }
+    return buffer.toString();
   }
 
   @pragma('vm:entry-point')

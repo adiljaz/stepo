@@ -11,6 +11,9 @@ import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'workout_screen.dart';
 
+import 'ranking_screen.dart';
+import 'challenges_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
@@ -33,8 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 index: _selectedNav,
                 children: [
                   _HealthDashboard(state: state, profile: profile),
+                  const RankingScreen(),
+                  const ChallengesScreen(),
                   const HistoryScreen(),
-                  const SettingsScreen(),
                 ],
               ),
               floatingActionButton: _selectedNav == 0
@@ -99,6 +103,15 @@ class _HealthDashboard extends StatelessWidget {
                       ),
                       const Spacer(),
                       _PulsePulse(),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), shape: BoxShape.circle),
+                          child: const Icon(Icons.settings_rounded, color: AppConfig.kSecondaryTextColor, size: 20),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -351,19 +364,23 @@ class _ModernNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      margin: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 32),
       decoration: BoxDecoration(
-        color: AppConfig.kSurfaceColor.withValues(alpha: 0.8),
+        color: AppConfig.kSurfaceColor.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(40),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _NavIcon(Icons.grid_view_rounded, selectedIndex == 0, () => onTap(0)),
-          const SizedBox(width: 48),
-          _NavIcon(Icons.history_rounded, selectedIndex == 1, () => onTap(1)),
-          _NavIcon(Icons.settings_rounded, selectedIndex == 2, () => onTap(2)),
+          _NavIcon(Icons.leaderboard_rounded, selectedIndex == 1, () => onTap(1)),
+          const SizedBox(width: 48), // Space for FAB
+          _NavIcon(Icons.emoji_events_rounded, selectedIndex == 2, () => onTap(2)),
+          _NavIcon(Icons.history_rounded, selectedIndex == 3, () => onTap(3)),
         ],
       ),
     );
@@ -374,30 +391,38 @@ class _NavIcon extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
-  const _NavIcon(this.icon, this.isSelected, this.onTap, {super.key});
+  const _NavIcon(this.icon, this.isSelected, this.onTap);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? AppConfig.kPrimaryColor : AppConfig.kSecondaryTextColor,
-            size: 26,
-          ),
-          if (isSelected)
-            Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppConfig.kPrimaryColor.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppConfig.kPrimaryColor : AppConfig.kSecondaryTextColor,
+              size: 24,
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
               margin: const EdgeInsets.only(top: 4),
-              width: 4, height: 4,
+              width: isSelected ? 4 : 0, 
+              height: 4,
               decoration: const BoxDecoration(color: AppConfig.kPrimaryColor, shape: BoxShape.circle),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-

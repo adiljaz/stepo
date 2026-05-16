@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import '../constants/step_constants.dart';
 import '../models/daily_record.dart';
@@ -21,6 +22,7 @@ import '../services/v7/ml_validator.dart';
 import '../services/v7/fft_anti_cheat.dart';
 import '../services/v7/confirmation_engine.dart';
 import '../services/v7/reconciliation_engine.dart';
+import '../services/v7/stride_calibrator.dart';
 
 class StepTrackerState {
   final int steps;
@@ -92,6 +94,7 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   late final BarometerTracker _barometerTracker;
   late final GPSKalmanFilter _kalmanFilter;
   final LocomotionClassifier _classifier = LocomotionClassifier();
+  final StrideCalibrator _strideEngine = StrideCalibrator();
   StreamSubscription<Position>? _gpsSub;
 
   String? _activeVehicleSessionId;
@@ -174,12 +177,23 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
       ).listen((Position position) {
         final speedKmh = position.speed * 3.6;
         _kalmanFilter.update(speedKmh);
+        
+        // Dynamic Stride Calibration
+        if (position.accuracy < 5.0 && speedKmh > 3.0 && speedKmh < 7.0) {
+           _strideEngine.calibrateFromGps(10, position.speed * 10); // Approximation
+        }
       }, onError: (error) {
         AppLogger.w('Tracker', 'GPS stream error: $error');
       });
     } catch (e) {
       AppLogger.w('Tracker', 'GPS Fusion error: $e');
     }
+  }
+
+  void _stopGpsStream() {
+    _gpsSub?.cancel();
+    _gpsSub = null;
+    AppLogger.i('Tracker', 'GPS stream STOPPED (Battery optimization).');
   }
 
   void updateProfile(UserProfile p) {
@@ -270,7 +284,16 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
 
     _softwareSessionSteps++;
     _totalDailySteps = _reconcileEngine.reconcile(_softwareSessionSteps, _hwFusion.currentSteps, _rejections);
-    _updateUI(tier, ml.confidence, fft.dominantFreq);
+    
+    // Dynamic Stride Distance Calculation
+    final spm = (60000 / (fft.dominantFreq * 1000)).toInt(); // Cadence from FFT
+    final dynamicStride = _strideEngine.calculateDynamicStride(spm);
+    final distDelta = dynamicStride / 1000.0;
+    
+    final newDist = state.distanceKm + distDelta;
+    final newCals = state.calories + (distDelta * 1000 * AppConfig.kCaloriesPerStepWalk / _strideEngine.baseStride);
+
+    _updateUI(tier, ml.confidence, fft.dominantFreq, distOverride: newDist, calsOverride: newCals);
 
     StepDatabase.logStepEvent(
       id: 'step_${DateTime.now().millisecondsSinceEpoch}',
@@ -306,11 +329,20 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   }
 
   void _handleStateTransition(LocomotionState oldState, LocomotionState newState) {
-    // Power Management
+    // Power & GPS Management (Intelligence-Gated)
     if (newState is StationaryState) {
       _sensorController.setPowerMode(PowerMode.low);
+      _stopGpsStream();
     } else if (oldState is StationaryState) {
       _sensorController.setPowerMode(PowerMode.normal);
+      _startGpsStream();
+    }
+
+    // Handle-Grip Sensitivity Adjustment
+    if (newState is WalkingState && _kalmanFilter.currentSpeedKmh > 2.0 && _kalmanFilter.currentSpeedKmh < 8.0) {
+       _peakDetector.setHandleGripMode(true);
+    } else {
+       _peakDetector.setHandleGripMode(false);
     }
 
     // Session Logging
@@ -329,9 +361,9 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
     }
   }
 
-  void _updateUI(ConfirmationTier tier, double mlConfidence, double fftFreq) {
-    final dist = _totalDailySteps * _currentStrideLength / 1000.0;
-    final cals = _totalDailySteps * AppConfig.kCaloriesPerStepWalk;
+  void _updateUI(ConfirmationTier tier, double mlConfidence, double fftFreq, {double? distOverride, double? calsOverride}) {
+    final dist = distOverride ?? (_totalDailySteps * _currentStrideLength / 1000.0);
+    final cals = calsOverride ?? (_totalDailySteps * AppConfig.kCaloriesPerStepWalk);
     
     emit(state.copyWith(
       steps: _totalDailySteps,
@@ -341,6 +373,15 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
       distanceKm: dist,
       calories: cals,
     ));
+
+    // Update Background Notification
+    FlutterBackgroundService().invoke('updateNotification', {
+      "steps": _totalDailySteps,
+      "goal": 10000, 
+      "locomotion": state.locomotionState.runtimeType.toString().replaceAll('State', ''),
+      "distance": state.distanceKm,
+      "calories": state.calories,
+    });
   }
 
   void _handleReject(String reason, GaitNetResult ml, FFTResult fft) {

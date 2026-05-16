@@ -19,6 +19,15 @@ class BiomechanicalPeakDetector {
   DateTime? _peakMaxTime;
   double _peakMaxVal = 0.0;
 
+  bool _isHandleGripMode = false;
+  double _noiseFloor = 0.05; // Base noise floor for hardware calibration
+
+  void setHandleGripMode(bool active) {
+    if (_isHandleGripMode == active) return;
+    _isHandleGripMode = active;
+    AppLogger.i('PeakDetector', 'HANDLE_GRIP_MODE: ${active ? "ENABLED (High Sensitivity)" : "DISABLED"}');
+  }
+
   /// Returns true if the sample identifies a validated peak candidate.
   bool process(double mag, double vertical, double dt) {
     final now = DateTime.now();
@@ -29,9 +38,13 @@ class BiomechanicalPeakDetector {
     
     if (_signalBuffer.length < 50) return false;
 
-    // 2. Pan-Tompkins Adaptive Threshold
+    // 2. ADAPTIVE NOISE CALIBRATION (World-Class Hardware Independence)
+    // Adjust threshold weight based on signal variance (lower noise = tighter threshold)
     final stats = _calculateStats(_signalBuffer);
-    final threshold = stats['mean']! + AppConfig.kPeakThresholdStdWeight * stats['std']!;
+    _noiseFloor = (_noiseFloor * 0.95) + (stats['std']! * 0.05); // Alpha-filtered noise floor
+    
+    final sensitivityWeight = _noiseFloor > 0.3 ? 2.5 : 1.8; // Aggressive gating for noisy sensors
+    final threshold = stats['mean']! + sensitivityWeight * stats['std']!;
 
     // 3. Peak Shape Tracking
     if (mag > _lastMag) {
@@ -78,10 +91,12 @@ class BiomechanicalPeakDetector {
     if (riseTime < AppConfig.kMinRiseTimeMs || riseTime > AppConfig.kMaxRiseTimeMs) return false;
     if (fallTimeMs < AppConfig.kMinFallTimeMs || fallTimeMs > AppConfig.kMaxFallTimeMs) return false;
 
-    // ── GATE 3: Jerk Range (5-80 m/s³) ─────────────────────────────────────
-    // Approximated from peak magnitude change over rise time
+    // ── GATE 3: Jerk Range (Adaptive Handle-Grip Logic) ────────────────────
+    // If pushing a stroller/mower, jerk is significantly lower.
     final jerk = (_peakMaxVal - 1.0).abs() * 9.81 / (riseTime / 1000.0);
-    if (jerk < AppConfig.kMinJerk || jerk > AppConfig.kMaxJerk) return false;
+    final minJerkThreshold = _isHandleGripMode ? AppConfig.kMinJerk * 0.3 : AppConfig.kMinJerk;
+    
+    if (jerk < minJerkThreshold || jerk > AppConfig.kMaxJerk) return false;
 
     // ── GATE 4: Symmetry (ISI CV < 0.35) ───────────────────────────────────
     if (_lastStepTime != null) {
@@ -93,7 +108,6 @@ class BiomechanicalPeakDetector {
         final isiStats = _calculateStats(_isiBuffer);
         final cv = isiStats['std']! / isiStats['mean']!;
         if (cv > AppConfig.kMaxIsiCv) {
-          AppLogger.w('PeakDetector', 'Rejected: Symmetry CV=${cv.toStringAsFixed(2)}');
           return false;
         }
       }
