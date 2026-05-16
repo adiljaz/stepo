@@ -23,6 +23,8 @@ import '../services/v7/fft_anti_cheat.dart';
 import '../services/v7/confirmation_engine.dart';
 import '../services/v7/reconciliation_engine.dart';
 import '../services/v7/stride_calibrator.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class StepTrackerState {
   final int steps;
@@ -95,7 +97,11 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   late final GPSKalmanFilter _kalmanFilter;
   final LocomotionClassifier _classifier = LocomotionClassifier();
   final StrideCalibrator _strideEngine = StrideCalibrator();
+  final ApiService _apiService = ApiService();
+  final AuthService _authService = AuthService();
   StreamSubscription<Position>? _gpsSub;
+  
+  int _lastSyncedToCloud = 0;
 
   String? _activeVehicleSessionId;
   DateTime? _vehicleSessionStartTime;
@@ -307,6 +313,23 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
     );
     
     StepDatabase.upsertToday(steps: _totalDailySteps, distanceKm: _totalDailySteps * _currentStrideLength / 1000.0, calories: _totalDailySteps * AppConfig.kCaloriesPerStepWalk);
+    
+    _syncToCloudIfNeeded();
+  }
+
+  Future<void> _syncToCloudIfNeeded() async {
+    // Sync every 500 steps or if it's the first sync of the session
+    if ((_totalDailySteps - _lastSyncedToCloud).abs() >= 500 || _lastSyncedToCloud == 0) {
+      if (await AuthService.isLoggedIn()) {
+        try {
+          await _apiService.syncSteps(_totalDailySteps);
+          _lastSyncedToCloud = _totalDailySteps;
+          AppLogger.i('Tracker', 'Cloud Sync Successful: $_totalDailySteps steps');
+        } catch (e) {
+          AppLogger.w('Tracker', 'Cloud Sync Failed: $e');
+        }
+      }
+    }
   }
 
   void _updateLocomotion(double gx, double gy, double gz, double jerk, double mag) {

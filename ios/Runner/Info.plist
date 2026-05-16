@@ -51,5 +51,17 @@
 	<!-- GPS vehicle-detection filter permission -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Used to filter steps taken in vehicles</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- TODO: Replace this with your REVERSED_CLIENT_ID from GoogleService-Info.plist -->
+				<string>com.googleusercontent.apps.486188532652-3ef4d8632c2166aa27b009</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

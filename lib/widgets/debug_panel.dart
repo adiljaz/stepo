@@ -57,10 +57,10 @@ class DebugPanel extends StatelessWidget {
 
   Color _getTierColor(ConfirmationTier tier) {
     switch (tier) {
-      case ConfirmationTier.tier1Instant: return AppConfig.kSuccessColor;
-      case ConfirmationTier.tier2Fast: return AppConfig.kWarningColor;
-      case ConfirmationTier.tier3Deep: return AppConfig.kAccentColor;
-      case ConfirmationTier.tier4Reject: return AppConfig.kErrorColor;
+      case ConfirmationTier.tier1Instant: return Colors.greenAccent;
+      case ConfirmationTier.tier2Fast: return Colors.orangeAccent;
+      case ConfirmationTier.tier3Deep: return Colors.cyanAccent;
+      case ConfirmationTier.tier4Reject: return Colors.redAccent;
     }
   }
 

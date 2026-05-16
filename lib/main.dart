@@ -1,63 +1,44 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'services/background_service.dart';
-import 'screens/splash_screen.dart';
-import 'constants/step_constants.dart';
-import 'models/user_profile.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'cubits/user_settings_cubit.dart';
+import 'core/router/app_router.dart';
 import 'cubits/step_tracker_cubit.dart';
-import 'cubits/workout_cubit.dart';
+import 'cubits/user_settings_cubit.dart';
 import 'cubits/insight_cubit.dart';
+import 'services/background_service.dart';
+import 'theme/app_theme.dart';
+
+import 'cubits/auth_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await BackgroundTrackingService.initializeService();
+  
+  // Initialize Background Service
+  try {
+    await BackgroundTrackingService.initializeService();
+  } catch (e) {
+    debugPrint("Background Service Initialization Failed: $e");
+  }
 
-  runApp(const StepoooApp());
+  runApp(const StepoApp());
 }
 
-class StepoooApp extends StatelessWidget {
-  const StepoooApp({super.key});
+class StepoApp extends StatelessWidget {
+  const StepoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => UserSettingsCubit()),
-        BlocProvider(create: (_) => StepTrackerCubit()),
-        BlocProvider(create: (_) => WorkoutCubit()),
-        BlocProvider(create: (_) => InsightCubit()),
+        BlocProvider(create: (context) => AuthCubit()),
+        BlocProvider(create: (context) => StepTrackerCubit()),
+        BlocProvider(create: (context) => UserSettingsCubit()),
+        BlocProvider(create: (context) => InsightCubit()),
       ],
-      child: BlocListener<UserSettingsCubit, UserProfile>(
-        listener: (context, profile) {
-          context.read<StepTrackerCubit>().updateProfile(profile);
-          context.read<InsightCubit>().loadInsights(profile.dailyGoalSteps);
-        },
-        child: MaterialApp(
-          title: 'Stepooo v7',
-          debugShowCheckedModeBanner: false,
-          theme: ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.dark,
-            scaffoldBackgroundColor: AppConfig.kBackgroundColor,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppConfig.kPrimaryColor,
-              primary: AppConfig.kPrimaryColor,
-              secondary: AppConfig.kSecondaryColor,
-              surface: AppConfig.kSurfaceColor,
-              error: AppConfig.kErrorColor,
-              brightness: Brightness.dark,
-            ),
-            textTheme: GoogleFonts.outfitTextTheme(
-              ThemeData.dark().textTheme,
-            ).apply(
-              bodyColor: AppConfig.kTextColor,
-              displayColor: AppConfig.kTextColor,
-            ),
-          ),
-          home: const SplashScreen(),
-        ),
+      child: MaterialApp.router(
+        title: 'Stepo',
+        debugShowCheckedModeBanner: false,
+        routerConfig: appRouter,
+        theme: AppTheme.lightTheme,
       ),
     );
   }

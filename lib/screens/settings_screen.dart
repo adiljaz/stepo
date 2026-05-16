@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
-import '../constants/step_constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubits/user_settings_cubit.dart';
 import '../models/user_profile.dart';
+import '../cubits/auth_cubit.dart';
+import '../theme/app_theme.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -13,148 +14,179 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UserSettingsCubit, UserProfile>(
       builder: (context, profile) {
+        final name = profile.name.isNotEmpty ? profile.name : "Arjun Raj";
         return Scaffold(
-          backgroundColor: AppConfig.kBackgroundColor,
-          body: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverAppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                pinned: true,
-                expandedHeight: 140,
-                flexibleSpace: FlexibleSpaceBar(
-                  centerTitle: false,
-                  titlePadding: const EdgeInsets.only(left: 24, bottom: 20),
-                  title: Text(
-                    'SETTINGS',
-                    style: GoogleFonts.outfit(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppConfig.kTextColor,
-                    ),
-                  ),
-                ),
+          backgroundColor: const Color(0xFFF8FAF8),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              "Profile",
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textDark,
               ),
-              SliverPadding(
-                padding: const EdgeInsets.all(24),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildSectionHeader('ENGINE SENSITIVITY'),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: AppConfig.kSurfaceColor,
-                        borderRadius: BorderRadius.circular(AppConfig.kCardRadius),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildSensitivityOption(context, profile, AISensitivity.forgiving, 'Relaxed'),
-                          const Divider(color: Colors.white10),
-                          _buildSensitivityOption(context, profile, AISensitivity.normal, 'Balanced'),
-                          const Divider(color: Colors.white10),
-                          _buildSensitivityOption(context, profile, AISensitivity.strict, 'Strict'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    _buildSectionHeader('HARDWARE INTEGRATION'),
-                    const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppConfig.kSurfaceColor,
-                        borderRadius: BorderRadius.circular(AppConfig.kCardRadius),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                        onTap: () => Permission.ignoreBatteryOptimizations.request(),
-                        leading: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppConfig.kPrimaryColor.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.bolt_rounded, color: AppConfig.kPrimaryColor),
-                        ),
-                        title: Text('Background Execution', style: GoogleFonts.outfit(color: AppConfig.kTextColor, fontWeight: FontWeight.w700, fontSize: 16)),
-                        subtitle: Text('Prevent system sleep interrupts', style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontSize: 12, fontWeight: FontWeight.w500)),
-                        trailing: const Icon(Icons.chevron_right_rounded, color: AppConfig.kSecondaryTextColor),
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                    _buildSectionHeader('DATA PRIVACY & SAFETY'),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: AppConfig.kSurfaceColor,
-                        borderRadius: BorderRadius.circular(AppConfig.kCardRadius),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildPrivacyTile(Icons.security_rounded, '100% Local Processing', 'All sensor data stays on your device. We do not use any external cloud for AI processing.'),
-                          const Divider(color: Colors.white10, height: 32),
-                          _buildPrivacyTile(Icons.visibility_off_rounded, 'No Data Selling', 'Your fitness and biometric data is yours. We never share or sell information to third parties.'),
-                          const Divider(color: Colors.white10, height: 32),
-                          _buildPrivacyTile(Icons.delete_forever_rounded, 'Anonymized Tracking', 'Location data for workouts is stored only in local history and is never linked to your identity.'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 120),
-                  ]),
-                ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings_outlined, color: AppTheme.textDark),
+                onPressed: () {},
               ),
             ],
+          ),
+          body: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                // Profile Header
+                Column(
+                  children: [
+                    Container(
+                      width: 90, height: 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15)],
+                        image: const DecorationImage(image: NetworkImage('https://i.pravatar.cc/150'), fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(name, style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                    Text("Kozhikode, Kerala", style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textLight, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                
+                // Level Progress
+                _LevelCard(),
+                
+                const SizedBox(height: 24),
+                
+                // Stats Grid
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _ProfileStat(label: "Total Steps", value: "2.45M"),
+                    _ProfileStat(label: "Total Distance", value: "1,742 km"),
+                    _ProfileStat(label: "Total Calories", value: "123,456 kcal"),
+                  ],
+                ),
+                
+                const SizedBox(height: 32),
+                
+                // Options List
+                _ProfileOption(icon: Icons.emoji_events_outlined, label: "Achievements"),
+                _ProfileOption(icon: Icons.star_outline_rounded, label: "Personal Bests"),
+                _ProfileOption(icon: Icons.track_changes_rounded, label: "Goals"),
+                _ProfileOption(icon: Icons.favorite_outline_rounded, label: "Health Data"),
+                _ProfileOption(icon: Icons.history_rounded, label: "Leaderboard History"),
+                _ProfileOption(icon: Icons.people_outline_rounded, label: "Friends"),
+                
+                const SizedBox(height: 32),
+                
+                // Logout
+                ListTile(
+                  onTap: () async {
+                    await context.read<AuthCubit>().logout();
+                    if (!context.mounted) return;
+                    context.go('/splash');
+                  },
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.logout_rounded, color: Colors.red, size: 20),
+                  ),
+                  title: Text("Logout", style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Colors.red, size: 20),
+                ),
+                
+                const SizedBox(height: 100),
+              ],
+            ),
           ),
         );
       },
     );
   }
+}
 
-  Widget _buildSectionHeader(String title) => Text(
-        title,
-        style: GoogleFonts.outfit(fontSize: 12, color: AppConfig.kPrimaryColor, fontWeight: FontWeight.w800, letterSpacing: 1.5),
-      );
-
-  Widget _buildSensitivityOption(BuildContext context, UserProfile profile, AISensitivity s, String label) {
-    final isSelected = profile.aiSensitivity == s;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        context.read<UserSettingsCubit>().save(profile.copyWith(aiSensitivity: s));
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(
-          children: [
-            Text(label, style: GoogleFonts.outfit(color: isSelected ? AppConfig.kPrimaryColor : AppConfig.kTextColor, fontSize: 18, fontWeight: FontWeight.w700)),
-            const Spacer(),
-            if (isSelected) Icon(Icons.check_circle_rounded, color: AppConfig.kPrimaryColor, size: 20),
-          ],
-        ),
+class _LevelCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryGreen,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: AppTheme.primaryGreen.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.shield_rounded, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text("Level 15", style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                ],
+              ),
+              Text("12,450 XP to next level", style: GoogleFonts.outfit(fontSize: 11, color: Colors.white.withValues(alpha: 0.8), fontWeight: FontWeight.w500)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: const LinearProgressIndicator(
+              value: 0.6,
+              minHeight: 6,
+              backgroundColor: Colors.white24,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildPrivacyTile(IconData icon, String title, String desc) {
+class _ProfileStat extends StatelessWidget {
+  final String label, value;
+  const _ProfileStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, color: AppConfig.kPrimaryColor, size: 20),
-            const SizedBox(width: 12),
-            Text(title, style: GoogleFonts.outfit(color: AppConfig.kTextColor, fontSize: 16, fontWeight: FontWeight.w700)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(desc, style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontSize: 13, fontWeight: FontWeight.w500, height: 1.4)),
+        Text(value, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+        Text(label, style: GoogleFonts.outfit(fontSize: 11, color: AppTheme.textLight, fontWeight: FontWeight.w500)),
       ],
+    );
+  }
+}
+
+class _ProfileOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _ProfileOption({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+        child: Icon(icon, color: AppTheme.textDark, size: 20),
+      ),
+      title: Text(label, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+      trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.textLight, size: 20),
+      onTap: () {},
     );
   }
 }

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stepooo/theme/app_theme.dart';
 import '../cubits/step_tracker_cubit.dart';
 import '../cubits/user_settings_cubit.dart';
 import '../models/user_profile.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
-import '../constants/step_constants.dart';
-import 'history_screen.dart';
+import 'social_screen.dart';
 import 'settings_screen.dart';
 import 'workout_screen.dart';
 
@@ -25,31 +24,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocBuilder<StepTrackerCubit, StepTrackerState>(
       builder: (context, state) {
         return BlocBuilder<UserSettingsCubit, UserProfile>(
           builder: (context, profile) {
             return Scaffold(
-              backgroundColor: AppConfig.kBackgroundColor,
-              extendBody: true,
+              backgroundColor: const Color(0xFFF8FAF8),
               body: IndexedStack(
                 index: _selectedNav,
                 children: [
-                  _HealthDashboard(state: state, profile: profile),
+                  _DashboardView(state: state, profile: profile),
+                  const SocialScreen(),
                   const RankingScreen(),
                   const ChallengesScreen(),
-                  const HistoryScreen(),
+                  const SettingsScreen(),
                 ],
               ),
-              floatingActionButton: _selectedNav == 0
-                  ? _ModernActionButton(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkoutScreen())),
-                    )
-                  : null,
-              floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-              bottomNavigationBar: _ModernNavBar(
+              floatingActionButton: _selectedNav == 0 ? FloatingActionButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkoutScreen())),
+                backgroundColor: AppTheme.primaryGreen,
+                child: const Icon(Icons.add, color: Colors.white, size: 32),
+              ) : null,
+              bottomNavigationBar: _StepUpNavBar(
                 selectedIndex: _selectedNav,
-                onTap: (i) => setState(() => _selectedNav = i),
+                onTap: (index) {
+                  setState(() => _selectedNav = index);
+                },
               ),
             );
           },
@@ -59,88 +60,279 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _HealthDashboard extends StatelessWidget {
+class _DashboardView extends StatelessWidget {
   final StepTrackerState state;
-  final dynamic profile;
-  const _HealthDashboard({required this.state, required this.profile});
+  final UserProfile profile;
+  const _DashboardView({required this.state, required this.profile});
 
   @override
   Widget build(BuildContext context) {
-    final name = (profile?.name?.isNotEmpty == true) ? profile!.name : 'Bio-Entity';
+    final name = profile.name.isNotEmpty ? profile.name : "Arjun";
 
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverAppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          toolbarHeight: 140,
-          expandedHeight: 140,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Stack(
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            // Header
+            Row(
               children: [
-                Positioned(
-                  top: -50, right: -30,
-                  child: Container(
-                    width: 200, height: 200,
-                    decoration: BoxDecoration(
-                      color: AppConfig.kPrimaryColor.withValues(alpha: 0.05),
-                      shape: BoxShape.circle,
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage('https://i.pravatar.cc/150?u=arjun'),
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 70, 24, 0),
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('SYNCHRONIZED', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: AppConfig.kPrimaryColor, letterSpacing: 3)),
-                          const SizedBox(height: 4),
-                          Text(name.toUpperCase(), style: GoogleFonts.outfit(fontSize: 36, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, height: 1)),
-                        ],
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Good Morning,",
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        color: AppTheme.textLight,
+                        fontWeight: FontWeight.w500,
                       ),
-                      const Spacer(),
-                      _PulsePulse(),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), shape: BoxShape.circle),
-                          child: const Icon(Icons.settings_rounded, color: AppConfig.kSecondaryTextColor, size: 20),
-                        ),
+                    ),
+                    Text(
+                      "$name 👋",
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        color: AppTheme.textDark,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFF0F0F0)),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_outlined,
+                    size: 22,
+                    color: AppTheme.textDark,
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+
+            const SizedBox(height: 30),
+
+            // Progress Circle
+            Center(child: _StepProgressRing(steps: state.steps, goal: 10000)),
+
+            const SizedBox(height: 30),
+
+            // Metrics Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _CyberPulseCore(steps: state.steps),
-                const SizedBox(height: 40),
-                Text('BIO-METRICS', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w900, color: AppConfig.kSecondaryTextColor, letterSpacing: 2)),
-                const SizedBox(height: 16),
+                _MetricItem(
+                  icon: Icons.location_on_rounded,
+                  value: state.distanceKm.toStringAsFixed(2),
+                  label: "km",
+                  color: Colors.blue,
+                ),
+                _MetricItem(
+                  icon: Icons.local_fire_department_rounded,
+                  value: state.calories.toInt().toString(),
+                  label: "kcal",
+                  color: Colors.orange,
+                ),
+                _MetricItem(
+                  icon: Icons.access_time_filled_rounded,
+                  value: (state.steps / 100).toInt().toString(),
+                  label: "min",
+                  color: Colors.cyan,
+                ),
+                _MetricItem(
+                  icon: Icons.stairs_rounded,
+                  value: state.flightsOfStairs.toString(),
+                  label: "floors",
+                  color: Colors.purple,
+                ),
               ],
             ),
+
+            const SizedBox(height: 24),
+
+            // Streak Card
+            const _StreakCard(),
+
+            const SizedBox(height: 20),
+
+            // Weekly Steps Card
+            const _WeeklyStepsCard(),
+
+            const SizedBox(height: 20),
+
+            // Insight Card
+            const _InsightCard(),
+
+            const SizedBox(height: 20),
+
+            // Quick Actions
+            Text(
+              "Quick Actions",
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textDark,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Row(
+              children: [
+                Expanded(
+                  child: _QuickActionBtn(
+                    icon: Icons.auto_awesome_rounded,
+                    label: "Challenges",
+                    color: Color(0xFFE8F5E9),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _QuickActionBtn(
+                    icon: Icons.people_rounded,
+                    label: "Friends",
+                    color: Color(0xFFE3F2FD),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _QuickActionBtn(
+                    icon: Icons.leaderboard_rounded,
+                    label: "Leaderboard",
+                    color: Color(0xFFFFF3E0),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 100), // Space for bottom nav
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StepProgressRing extends StatelessWidget {
+  final int steps;
+  final int goal;
+  const _StepProgressRing({required this.steps, required this.goal});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (steps / goal).clamp(0.0, 1.0);
+    return SizedBox(
+      width: 200,
+      height: 200,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 180,
+            height: 180,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 14,
+              backgroundColor: const Color(0xFFF0F0F0),
+              color: AppTheme.primaryGreen,
+              strokeCap: StrokeCap.round,
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Today's Steps",
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  color: AppTheme.textLight,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                steps.toLocaleString(),
+                style: GoogleFonts.outfit(
+                  fontSize: 42,
+                  color: AppTheme.textDark,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
+                ),
+              ),
+              Text(
+                "/ $goal",
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  color: AppTheme.textLight,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "${(progress * 100).toInt()}% Completed",
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  color: AppTheme.primaryGreen,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetricItem extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  const _MetricItem({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: GoogleFonts.outfit(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.textDark,
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 140),
-          sliver: SliverMasonryGrid.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            itemBuilder: (context, index) => _CyberMetricCard(index: index, state: state),
-            childCount: 4,
+        Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            color: AppTheme.textLight,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -148,281 +340,416 @@ class _HealthDashboard extends StatelessWidget {
   }
 }
 
-class _CyberPulseCore extends StatelessWidget {
-  final int steps;
-  const _CyberPulseCore({required this.steps});
+class _StreakCard extends StatelessWidget {
+  const _StreakCard();
 
   @override
   Widget build(BuildContext context) {
-    final progress = (steps / 10000).clamp(0.0, 1.0);
     return Container(
-      height: 220,
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [AppConfig.kPrimaryColor.withValues(alpha: 0.3), Colors.transparent]),
-        borderRadius: AppConfig.kOrganicRadius,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppConfig.kSurfaceColor,
-          borderRadius: AppConfig.kOrganicRadius,
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: 20, bottom: 20,
-              child: Opacity(
-                opacity: 0.1,
-                child: Icon(Icons.waves_rounded, size: 100, color: AppConfig.kPrimaryColor),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('TOTAL VITALITY', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: AppConfig.kSecondaryTextColor, letterSpacing: 1.5)),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: AppConfig.kPrimaryColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                        child: Text('${(progress * 100).toInt()}%', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: AppConfig.kPrimaryColor)),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Text(
-                    steps.toString(),
-                    style: GoogleFonts.outfit(fontSize: 72, fontWeight: FontWeight.w900, color: AppConfig.kTextColor, height: 1, letterSpacing: -2),
-                  ),
-                  Text('STEPS TODAY', style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: AppConfig.kSecondaryTextColor)),
-                  const SizedBox(height: 20),
-                  _CyberProgressBar(progress: progress),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CyberMetricCard extends StatelessWidget {
-  final int index;
-  final StepTrackerState state;
-  const _CyberMetricCard({required this.index, required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final config = _getCardConfig(index);
-    return Container(
-      decoration: BoxDecoration(
-        color: AppConfig.kSurfaceColor,
-        borderRadius: AppConfig.kOrganicRadius,
-        border: Border.all(color: config.color.withValues(alpha: 0.1), width: 1),
-      ),
       padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(config.icon, color: config.color, size: 20),
-          const SizedBox(height: 24),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(config.value, style: GoogleFonts.outfit(fontSize: 26, fontWeight: FontWeight.w900, color: AppConfig.kTextColor)),
+          Row(
+            children: [
+              Text(
+                "Streak",
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  color: AppTheme.textLight,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const Spacer(),
+              const Icon(
+                Icons.local_fire_department_rounded,
+                color: Colors.orange,
+                size: 18,
+              ),
+            ],
           ),
-          Text(config.title.toUpperCase(), style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: AppConfig.kSecondaryTextColor, letterSpacing: 1)),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                "5",
+                style: GoogleFonts.outfit(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                "Days",
+                style: GoogleFonts.outfit(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Complete 8,000+ steps daily to keep\nyour streak alive.",
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              color: AppTheme.textLight,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children:
+                ["M", "T", "W", "T", "F", "S", "S"].map((day) {
+                  final isToday = day == "F";
+                  final isDone = ["M", "T", "W", "T", "F"].contains(day);
+                  return Column(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color:
+                              isDone
+                                  ? AppTheme.primaryGreen
+                                  : const Color(0xFFF0F0F0),
+                          shape: BoxShape.circle,
+                        ),
+                        child:
+                            isDone
+                                ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 16,
+                                )
+                                : null,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        day,
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight:
+                              isToday ? FontWeight.bold : FontWeight.normal,
+                          color:
+                              isToday ? AppTheme.textDark : AppTheme.textLight,
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+          ),
         ],
       ),
     );
   }
-
-  _CardConfig _getCardConfig(int index) {
-    switch (index) {
-      case 0:
-        return _CardConfig(
-          title: 'Distance',
-          value: '${state.distanceKm.toStringAsFixed(1)} km',
-          icon: Icons.route_rounded,
-          color: AppConfig.kPrimaryColor,
-        );
-      case 1:
-        return _CardConfig(
-          title: 'Calories',
-          value: '${state.calories.toInt()} kcal',
-          icon: Icons.local_fire_department_rounded,
-          color: AppConfig.kSecondaryColor,
-        );
-      case 2:
-        return _CardConfig(
-          title: 'Floors',
-          value: '${state.flightsOfStairs} fl',
-          icon: Icons.stairs_rounded,
-          color: AppConfig.kAccentColor,
-        );
-      case 3:
-        return _CardConfig(
-          title: 'Intensity',
-          value: '${(state.steps / 100).toInt()} min',
-          icon: Icons.bolt_rounded,
-          color: AppConfig.kSuccessColor,
-        );
-      default:
-        return _CardConfig(title: '', value: '', icon: Icons.help, color: Colors.grey);
-    }
-  }
 }
 
-class _CardConfig {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-  _CardConfig({required this.title, required this.value, required this.icon, required this.color});
-}
+class _WeeklyStepsCard extends StatelessWidget {
+  const _WeeklyStepsCard();
 
-// --- HELPER WIDGETS ---
-
-class _PulsePulse extends StatelessWidget {
-  const _PulsePulse();
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppConfig.kPrimaryColor.withValues(alpha: 0.1),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Weekly Steps",
+                    style: GoogleFonts.outfit(
+                      fontSize: 12,
+                      color: AppTheme.textLight,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "54,721",
+                    style: GoogleFonts.outfit(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                  Text(
+                    "Total Steps",
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      color: AppTheme.textLight,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.trending_up,
+                      color: AppTheme.primaryGreen,
+                      size: 14,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      "+ 12%",
+                      style: GoogleFonts.outfit(
+                        fontSize: 11,
+                        color: AppTheme.primaryGreen,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 100,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children:
+                  [40, 60, 45, 80, 55, 30, 20].map((h) {
+                    return Container(
+                      width: 12,
+                      height: h.toDouble(),
+                      decoration: BoxDecoration(
+                        color:
+                            h > 50
+                                ? AppTheme.primaryGreen
+                                : const Color(0xFFF0F0F0),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    );
+                  }).toList(),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children:
+                ["M", "T", "W", "T", "F", "S", "S"]
+                    .map(
+                      (d) => Text(
+                        d,
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          color: AppTheme.textLight,
+                        ),
+                      ),
+                    )
+                    .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InsightCard extends StatelessWidget {
+  const _InsightCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F8E9),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppConfig.kPrimaryColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
-            width: 6, height: 6,
-            decoration: const BoxDecoration(color: AppConfig.kPrimaryColor, shape: BoxShape.circle),
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lightbulb_outline_rounded,
+              color: AppTheme.primaryGreen,
+              size: 20,
+            ),
           ),
-          const SizedBox(width: 8),
-          Text('LIVE PULSE', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: AppConfig.kPrimaryColor, letterSpacing: 1)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Today's Insight",
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+                Text(
+                  "You're 1,251 steps away from\nreaching your daily goal.",
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: AppTheme.textDark.withValues(alpha: 0.7),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _CyberProgressBar extends StatelessWidget {
-  final double progress;
-  const _CyberProgressBar({required this.progress});
+class _QuickActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  const _QuickActionBtn({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity, height: 6,
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(3)),
-      child: FractionallySizedBox(
-        alignment: Alignment.centerLeft,
-        widthFactor: progress,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppConfig.kPrimaryColor,
-            borderRadius: BorderRadius.circular(3),
-            boxShadow: [BoxShadow(color: AppConfig.kPrimaryColor.withValues(alpha: 0.5), blurRadius: 10)],
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF0F0F0)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: AppTheme.textDark, size: 20),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: GoogleFonts.outfit(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textDark,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _ModernActionButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  const _ModernActionButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 70, width: 70,
-        decoration: BoxDecoration(
-          color: AppConfig.kPrimaryColor,
-          shape: BoxShape.circle,
-          boxShadow: AppConfig.kCyberGlow(AppConfig.kPrimaryColor),
-        ),
-        child: const Icon(Icons.bolt_rounded, color: Colors.black, size: 36),
-      ),
-    );
-  }
-}
-
-class _ModernNavBar extends StatelessWidget {
+class _StepUpNavBar extends StatelessWidget {
   final int selectedIndex;
   final Function(int) onTap;
-  const _ModernNavBar({required this.selectedIndex, required this.onTap});
+  const _StepUpNavBar({required this.selectedIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 80,
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       decoration: BoxDecoration(
-        color: AppConfig.kSurfaceColor.withValues(alpha: 0.9),
+        color: AppTheme.textDark,
         borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _NavIcon(Icons.grid_view_rounded, selectedIndex == 0, () => onTap(0)),
-          _NavIcon(Icons.leaderboard_rounded, selectedIndex == 1, () => onTap(1)),
-          const SizedBox(width: 48), // Space for FAB
-          _NavIcon(Icons.emoji_events_rounded, selectedIndex == 2, () => onTap(2)),
-          _NavIcon(Icons.history_rounded, selectedIndex == 3, () => onTap(3)),
+          _NavBarIcon(Icons.home_filled, selectedIndex == 0, () => onTap(0)),
+          _NavBarIcon(
+            Icons.people_rounded,
+            selectedIndex == 1,
+            () => onTap(1),
+          ),
+          _NavBarIcon(
+            Icons.emoji_events_rounded,
+            selectedIndex == 2,
+            () => onTap(2),
+          ),
+          _NavBarIcon(
+            Icons.auto_awesome_rounded,
+            selectedIndex == 3,
+            () => onTap(3),
+          ),
+          _NavBarIcon(Icons.person_rounded, selectedIndex == 4, () => onTap(4)),
         ],
       ),
     );
   }
 }
 
-class _NavIcon extends StatelessWidget {
+class _NavBarIcon extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
-  const _NavIcon(this.icon, this.isSelected, this.onTap);
+  const _NavBarIcon(this.icon, this.isSelected, this.onTap);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppConfig.kPrimaryColor.withValues(alpha: 0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppConfig.kPrimaryColor : AppConfig.kSecondaryTextColor,
-              size: 24,
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.only(top: 4),
-              width: isSelected ? 4 : 0, 
-              height: 4,
-              decoration: const BoxDecoration(color: AppConfig.kPrimaryColor, shape: BoxShape.circle),
-            ),
-          ],
-        ),
+    return IconButton(
+      icon: Icon(
+        icon,
+        color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.5),
+        size: 24,
       ),
+      onPressed: onTap,
+    );
+  }
+}
+
+extension IntFormatting on int {
+  String toLocaleString() {
+    return toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
     );
   }
 }

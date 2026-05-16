@@ -49,8 +49,8 @@ class BackgroundTrackingService {
           currentSteps = event['steps'] ?? currentSteps;
           goalSteps = event['goal'] ?? goalSteps;
           locomotion = event['locomotion'] ?? locomotion;
-          final double distance = event['distance'] ?? 0.0;
-          final double calories = event['calories'] ?? 0.0;
+          final double distance = (event['distance'] as num?)?.toDouble() ?? 0.0;
+          final double calories = (event['calories'] as num?)?.toDouble() ?? 0.0;
           
           final progress = (currentSteps / goalSteps).clamp(0.0, 1.0);
           final bar = _generateColorfulBar(progress);

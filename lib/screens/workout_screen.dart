@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
-import '../constants/step_constants.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubits/workout_cubit.dart';
+import '../theme/app_theme.dart';
 import '../cubits/step_tracker_cubit.dart';
 
 class WorkoutScreen extends StatefulWidget {
@@ -48,22 +48,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           }
 
           return Scaffold(
-            backgroundColor: AppConfig.kBackgroundColor,
-            appBar: AppBar(
-              backgroundColor: AppConfig.kBackgroundColor,
-              elevation: 0,
-              title: Text(
-                'WORKOUT',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 22, color: AppConfig.kTextColor),
-              ),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppConfig.kTextColor),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            body: Column(
+            backgroundColor: Colors.white,
+            body: Stack(
               children: [
-                Expanded(
+                // Map Background
+                Positioned.fill(
                   child: workout.isActive && workout.route.isNotEmpty
                       ? FlutterMap(
                           mapController: _mapCtrl,
@@ -72,58 +61,41 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                             initialZoom: 16,
                           ),
                           children: [
-                            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+                            TileLayer(
+                              urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              subdomains: const ['a', 'b', 'c'],
+                            ),
                             PolylineLayer(
                               polylines: [
-                                Polyline(points: workout.route, color: AppConfig.kPrimaryColor, strokeWidth: 5),
+                                Polyline(
+                                  points: workout.route,
+                                  color: AppTheme.primaryGreen,
+                                  strokeWidth: 5,
+                                ),
                               ],
                             ),
                           ],
                         )
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.map_rounded, size: 80, color: AppConfig.kPrimaryColor.withValues(alpha: 0.3)),
-                              const SizedBox(height: 16),
-                              Text('Ready for a session?', style: GoogleFonts.outfit(color: AppConfig.kSecondaryTextColor, fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
+                      : Container(color: const Color(0xFFF8FAF8)),
                 ),
-                if (workout.isActive)
-                  _StatsStrip(
-                    distanceKm: workout.distanceKm,
-                    steps: workout.currentSteps - workout.startSteps,
+
+                // Top Header Overlay
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 10,
+                  left: 20, right: 20,
+                  child: Row(
+                    children: [
+                      _BlurButton(icon: Icons.arrow_back_ios_new_rounded, onTap: () => Navigator.pop(context)),
+                      const Spacer(),
+                      if (workout.isActive) _ChallengeProgressHeader(),
+                    ],
                   ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 64,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: workout.isActive ? AppConfig.kErrorColor : AppConfig.kPrimaryColor,
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                        elevation: 8,
-                        shadowColor: (workout.isActive ? AppConfig.kErrorColor : AppConfig.kPrimaryColor).withValues(alpha: 0.3),
-                      ),
-                      onPressed: () async {
-                        if (!workout.isActive) {
-                          final steps = context.read<StepTrackerCubit>().state.steps;
-                          await context.read<WorkoutCubit>().startWorkout(currentSteps: steps);
-                        } else {
-                          final session = context.read<WorkoutCubit>().stopWorkout();
-                          setState(() => _finishedSession = session);
-                        }
-                      },
-                      child: Text(
-                        workout.isActive ? 'STOP SESSION' : 'START SESSION',
-                        style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1.2),
-                      ),
-                    ),
-                  ),
+                ),
+
+                // Bottom Stats Card
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _BottomActivityCard(workout: workout),
                 ),
               ],
             ),
@@ -134,56 +106,143 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   }
 }
 
-class _StatsStrip extends StatelessWidget {
-  final double distanceKm;
-  final int steps;
-  const _StatsStrip({required this.distanceKm, required this.steps});
+class _BlurButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _BlurButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.9), shape: BoxShape.circle),
+        child: Icon(icon, color: AppTheme.textDark, size: 20),
+      ),
+    );
+  }
+}
+
+class _ChallengeProgressHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(24),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppConfig.kSurfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 15)],
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: _Chip(label: 'STEPS', value: '$steps', icon: Icons.directions_walk_rounded)),
-          Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.1)),
-          Expanded(child: _Chip(label: 'DISTANCE', value: '${distanceKm.toStringAsFixed(2)}km', icon: Icons.route_rounded)),
+          _MiniAvatar(url: 'https://i.pravatar.cc/100?u=1'),
+          const SizedBox(width: 8),
+          Text("VS", style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.textLight)),
+          const SizedBox(width: 8),
+          _MiniAvatar(url: 'https://i.pravatar.cc/100?u=2'),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("10K Steps Battle", style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+              Text("Leading by 100", style: GoogleFonts.outfit(fontSize: 9, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
-class _Chip extends StatelessWidget {
-  final String label, value;
-  final IconData icon;
-  const _Chip({required this.label, required this.value, required this.icon});
+class _MiniAvatar extends StatelessWidget {
+  final String url;
+  const _MiniAvatar({required this.url});
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Row(
+  Widget build(BuildContext context) => CircleAvatar(radius: 12, backgroundImage: NetworkImage(url));
+}
+
+class _BottomActivityCard extends StatelessWidget {
+  final WorkoutState workout;
+  const _BottomActivityCard({required this.workout});
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = workout.isActive ? workout.currentSteps - workout.startSteps : 0;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -5))],
+      ),
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: AppConfig.kPrimaryColor),
-          const SizedBox(width: 4),
-          Text(label, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w700, color: AppConfig.kSecondaryTextColor, letterSpacing: 1)),
+          if (workout.isActive) ...[
+            Text("YOU ARE LEADING! 🏆", style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+            const SizedBox(height: 16),
+            Text(steps.toString(), style: GoogleFonts.outfit(fontSize: 48, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+            Text("STEPS TAKEN", style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1)),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _WorkoutMetric(label: "Distance", value: "${workout.distanceKm.toStringAsFixed(2)} km"),
+                _WorkoutMetric(label: "Calories", value: "${(steps * 0.04).toStringAsFixed(1)} kcal"),
+                _WorkoutMetric(label: "Time", value: "14:23"),
+              ],
+            ),
+          ] else
+            Text("READY TO GO?", style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+          
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              onPressed: () async {
+                if (!workout.isActive) {
+                  final steps = context.read<StepTrackerCubit>().state.steps;
+                  await context.read<WorkoutCubit>().startWorkout(currentSteps: steps);
+                } else {
+                  context.read<WorkoutCubit>().stopWorkout();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: workout.isActive ? Colors.red : AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              ),
+              child: Text(
+                workout.isActive ? "STOP SESSION" : "START SESSION",
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
         ],
       ),
-      const SizedBox(height: 4),
-      FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(value, style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w800, color: AppConfig.kTextColor)),
-      ),
-    ],
-  );
+    );
+  }
+}
+
+class _WorkoutMetric extends StatelessWidget {
+  final String label, value;
+  const _WorkoutMetric({required this.label, required this.value});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(value, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+        Text(label, style: GoogleFonts.outfit(fontSize: 11, color: AppTheme.textLight, fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
 }
 
 class _SummaryView extends StatelessWidget {
@@ -193,47 +252,39 @@ class _SummaryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppConfig.kBackgroundColor,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(32),
+      backgroundColor: const Color(0xFFF8FAF8),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 40),
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppConfig.kPrimaryColor.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.celebration_rounded, size: 48, color: AppConfig.kPrimaryColor),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Center(
-              child: Text(
-                'SESSION COMPLETE',
-                style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: AppConfig.kTextColor),
-              ),
-            ),
+            const Icon(Icons.celebration_rounded, size: 80, color: AppTheme.primaryGreen),
+            const SizedBox(height: 24),
+            Text("Session Complete!", style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
             const SizedBox(height: 48),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(child: _StatBox(label: 'TOTAL STEPS', value: session.steps.toString(), color: AppConfig.kPrimaryColor)),
-                const SizedBox(width: 16),
-                Expanded(child: _StatBox(label: 'TOTAL KM', value: session.distanceKm.toStringAsFixed(2), color: AppConfig.kSecondaryColor)),
+                _SummaryStat(label: "Steps", value: session.steps.toString()),
+                const SizedBox(width: 40),
+                _SummaryStat(label: "Distance", value: "${session.distanceKm.toStringAsFixed(2)} km"),
               ],
             ),
             const SizedBox(height: 64),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                minimumSize: const Size(double.infinity, 64),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.textDark,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  child: Text("Back to Home", style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
               ),
-              child: Text('FINISH', style: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: 1.5)),
             ),
           ],
         ),
@@ -242,28 +293,16 @@ class _SummaryView extends StatelessWidget {
   }
 }
 
-class _StatBox extends StatelessWidget {
+class _SummaryStat extends StatelessWidget {
   final String label, value;
-  final Color color;
-  const _StatBox({required this.label, required this.value, required this.color});
+  const _SummaryStat({required this.label, required this.value});
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: AppConfig.kSurfaceColor,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: color.withValues(alpha: 0.1), width: 1.5),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    return Column(
       children: [
-        Text(label, style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w700, color: color, letterSpacing: 1)),
-        const SizedBox(height: 8),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(value, style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w800, color: AppConfig.kTextColor)),
-        ),
+        Text(value, style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+        Text(label, style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textLight, fontWeight: FontWeight.w600)),
       ],
-    ),
-  );
+    );
+  }
 }

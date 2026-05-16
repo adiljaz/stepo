@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../constants/step_constants.dart';
+import '../theme/app_theme.dart';
 
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
@@ -9,59 +9,46 @@ class RankingScreen extends StatefulWidget {
   State<RankingScreen> createState() => _RankingScreenState();
 }
 
-class _RankingScreenState extends State<RankingScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
+class _RankingScreenState extends State<RankingScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppConfig.kBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return DefaultTabController(
+      length: 5,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAF8),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text(
+            "Rankings",
+            style: GoogleFonts.outfit(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textDark,
+            ),
+          ),
+          bottom: TabBar(
+            isScrollable: true,
+            indicatorColor: AppTheme.primaryGreen,
+            labelColor: AppTheme.primaryGreen,
+            unselectedLabelColor: AppTheme.textLight,
+            labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 13),
+            tabs: const [
+              Tab(text: "Friends"),
+              Tab(text: "District"),
+              Tab(text: "State"),
+              Tab(text: "India"),
+              Tab(text: "Global"),
+            ],
+          ),
+        ),
+        body: const TabBarView(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('VITALITY INDEX', 
-                    style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: AppConfig.kPrimaryColor, letterSpacing: 3)),
-                  const SizedBox(height: 4),
-                  Text('RANKINGS', 
-                    style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w900, color: AppConfig.kTextColor)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            TabBar(
-              controller: _tabController,
-              indicatorColor: AppConfig.kPrimaryColor,
-              indicatorSize: TabBarIndicatorSize.label,
-              labelColor: AppConfig.kTextColor,
-              unselectedLabelColor: AppConfig.kSecondaryTextColor,
-              dividerColor: Colors.transparent,
-              labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w900, letterSpacing: 1),
-              tabs: const [
-                Tab(text: 'DISTRICTS (KERALA)'),
-                Tab(text: 'GLOBAL ENTITIES'),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _DistrictRankingList(),
-                  _GlobalRankingList(),
-                ],
-              ),
-            ),
+            _RankingListContent(),
+            _RankingListContent(),
+            _RankingListContent(),
+            _RankingListContent(),
+            _RankingListContent(),
           ],
         ),
       ),
@@ -69,143 +56,161 @@ class _RankingScreenState extends State<RankingScreen> with SingleTickerProvider
   }
 }
 
-class _DistrictRankingList extends StatelessWidget {
-  final List<Map<String, dynamic>> districts = [
-    {'name': 'Ernakulam', 'steps': '1.2M', 'growth': '+12%', 'icon': Icons.location_city},
-    {'name': 'Thiruvananthapuram', 'steps': '1.1M', 'growth': '+8%', 'icon': Icons.account_balance},
-    {'name': 'Kozhikode', 'steps': '980K', 'growth': '+15%', 'icon': Icons.beach_access},
-    {'name': 'Thrissur', 'steps': '850K', 'growth': '+5%', 'icon': Icons.festival},
-    {'name': 'Malappuram', 'steps': '820K', 'growth': '+20%', 'icon': Icons.sports_soccer},
-    {'name': 'Kannur', 'steps': '790K', 'growth': '+2%', 'icon': Icons.fort},
-    {'name': 'Kottayam', 'steps': '750K', 'growth': '+6%', 'icon': Icons.menu_book},
-  ];
+class _RankingListContent extends StatelessWidget {
+  const _RankingListContent();
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      itemCount: districts.length,
-      itemBuilder: (context, index) {
-        return TweenAnimationBuilder<double>(
-          duration: Duration(milliseconds: 400 + (index * 100)),
-          tween: Tween(begin: 0.0, end: 1.0),
-          builder: (context, value, child) {
-            return Transform.translate(
-              offset: Offset(0, 50 * (1 - value)),
-              child: Opacity(
-                opacity: value,
-                child: child,
-              ),
-            );
-          },
-          child: _RankingTile(
-            rank: index + 1,
-            title: districts[index]['name'],
-            subtitle: '${districts[index]['steps']} steps collectively',
-            trailing: districts[index]['growth'],
-            icon: districts[index]['icon'],
-            color: index < 3 ? AppConfig.kPrimaryColor : AppConfig.kSecondaryTextColor,
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        // Time Filters
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            children: ["Daily", "Weekly", "Monthly", "All Time"].map((label) {
+              final isSelected = label == "Daily";
+              return Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.primaryGreen : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? Colors.transparent : const Color(0xFFEEEEEE)),
+                ),
+                child: Text(
+                  label,
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? Colors.white : AppTheme.textLight,
+                  ),
+                ),
+              );
+            }).toList(),
           ),
-        );
-      },
+        ),
+        const SizedBox(height: 24),
+        // Podium
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: _Podium(),
+        ),
+        const SizedBox(height: 24),
+        // List
+        Expanded(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+            ),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(24),
+              itemCount: 5,
+              itemBuilder: (context, index) {
+                final rank = index + 4;
+                return _RankTile(rank: rank);
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _GlobalRankingList extends StatelessWidget {
-  final List<Map<String, dynamic>> players = [
-    {'name': 'Arjun V.', 'steps': '24,531', 'img': 'A'},
-    {'name': 'Meera K.', 'steps': '22,102', 'img': 'M'},
-    {'name': 'Rahul R.', 'steps': '19,870', 'img': 'R'},
-    {'name': 'Sruthi S.', 'steps': '18,500', 'img': 'S'},
-    {'name': 'Adil J.', 'steps': '15,400', 'img': 'A'},
-  ];
+class _Podium extends StatelessWidget {
+  const _Podium();
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      itemCount: players.length,
-      itemBuilder: (context, index) {
-        return TweenAnimationBuilder<double>(
-          duration: Duration(milliseconds: 400 + (index * 100)),
-          tween: Tween(begin: 0.0, end: 1.0),
-          builder: (context, value, child) {
-            return Transform.scale(
-              scale: value,
-              child: Opacity(opacity: value, child: child),
-            );
-          },
-          child: _RankingTile(
-            rank: index + 1,
-            title: players[index]['name'],
-            subtitle: '${players[index]['steps']} steps',
-            trailing: '#${index + 1}',
-            avatar: players[index]['img'],
-            color: index == 0 ? AppConfig.kPrimaryColor : AppConfig.kSecondaryColor,
-          ),
-        );
-      },
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _PodiumUser(rank: 2, name: "Ananya", steps: 13245, avatar: "https://i.pravatar.cc/100?u=2"),
+        _PodiumUser(rank: 1, name: "Arjun Raj", steps: 15230, avatar: "https://i.pravatar.cc/100?u=1", isLarge: true),
+        _PodiumUser(rank: 3, name: "Nikhil", steps: 12001, avatar: "https://i.pravatar.cc/100?u=3"),
+      ],
     );
   }
 }
 
-class _RankingTile extends StatelessWidget {
+class _PodiumUser extends StatelessWidget {
   final int rank;
-  final String title;
-  final String subtitle;
-  final String trailing;
-  final IconData? icon;
-  final String? avatar;
-  final Color color;
+  final String name;
+  final int steps;
+  final String avatar;
+  final bool isLarge;
 
-  const _RankingTile({
+  const _PodiumUser({
     required this.rank,
-    required this.title,
-    required this.subtitle,
-    required this.trailing,
-    this.icon,
-    this.avatar,
-    required this.color,
+    required this.name,
+    required this.steps,
+    required this.avatar,
+    this.isLarge = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppConfig.kSurfaceColor,
-        borderRadius: AppConfig.kOrganicRadius,
-        border: Border.all(color: color.withValues(alpha: 0.1)),
-      ),
+    final size = isLarge ? 80.0 : 60.0;
+    return Column(
+      children: [
+        if (isLarge)
+          const Icon(Icons.workspace_premium_rounded, color: Colors.orange, size: 24),
+        const SizedBox(height: 4),
+        Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Container(
+              width: size, height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: isLarge ? AppTheme.primaryGreen : Colors.transparent, width: 3),
+                image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover),
+              ),
+            ),
+            Container(
+              transform: Matrix4.translationValues(0, 10, 0),
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(color: AppTheme.textDark, shape: BoxShape.circle),
+              child: Text(rank.toString(), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(name, style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+        Text(steps.toString(), style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+      ],
+    );
+  }
+}
+
+class _RankTile extends StatelessWidget {
+  final int rank;
+  const _RankTile({required this.rank});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(rank.toString(), style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: color)),
-          ),
+          Text(rank.toString(), style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textLight)),
           const SizedBox(width: 16),
-          if (avatar != null)
-             CircleAvatar(backgroundColor: color.withValues(alpha: 0.2), child: Text(avatar!, style: TextStyle(color: color)))
-          else
-             Icon(icon ?? Icons.map, color: color),
-          const SizedBox(width: 16),
+          const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/100')),
+          const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: AppConfig.kTextColor)),
-                Text(subtitle, style: GoogleFonts.outfit(fontSize: 12, color: AppConfig.kSecondaryTextColor)),
-              ],
+            child: Text(
+              "Amal C", // Dummy
+              style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark),
             ),
           ),
-          Text(trailing, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900, color: color)),
+          Text(
+            "11,245", // Dummy
+            style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900, color: AppTheme.textDark),
+          ),
         ],
       ),
     );

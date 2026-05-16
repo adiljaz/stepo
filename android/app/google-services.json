@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "486188532652",
+    "project_id": "stepo-9f6f9",
+    "storage_bucket": "stepo-9f6f9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486188532652:android:3ef4d8632c2166aa27b009",
+        "android_client_info": {
+          "package_name": "com.example.stepooo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "486188532652-p0e271442u47u8vamk914hoa4l0fq7oa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.stepooo",
+            "certificate_hash": "52379e25923e4d8292db9d9527122c895f9b646c"
+          }
+        },
+        {
+          "client_id": "486188532652-s6t9t85a3f1m29m782vukhf2adqdlm1v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO7XrBuGr3kx9BByxTG6Eel4dl130uw0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "486188532652-s6t9t85a3f1m29m782vukhf2adqdlm1v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
