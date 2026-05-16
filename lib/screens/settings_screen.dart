@@ -92,13 +92,27 @@ class SettingsScreen extends StatelessWidget {
                               : null,
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      name,
-                      style: GoogleFonts.outfit(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.textDark,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          name,
+                          style: GoogleFonts.outfit(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textDark,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _showEditNameDialog(context, profile.name),
+                          child: Icon(
+                            Icons.edit_note_rounded,
+                            size: 20,
+                            color: AppTheme.primaryGreen,
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       profile.sex.isNotEmpty
@@ -349,4 +363,42 @@ class _ProfileOption extends StatelessWidget {
       onTap: onTap,
     );
   }
+}
+
+void _showEditNameDialog(BuildContext context, String currentName) {
+  final controller = TextEditingController(text: currentName);
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text('Edit Username', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+      content: TextField(
+        controller: controller,
+        autofocus: true,
+        decoration: InputDecoration(
+          hintText: 'Enter your name',
+          filled: true,
+          fillColor: const Color(0xFFF5F5F5),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+        ElevatedButton(
+          onPressed: () {
+            if (controller.text.trim().isNotEmpty) {
+              context.read<UserSettingsCubit>().updateName(controller.text.trim());
+              Navigator.pop(context);
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF67B010),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: const Text('Save', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
+  );
 }

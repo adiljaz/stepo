@@ -28,6 +28,7 @@ class UserProfile {
   Map<String, dynamic> toMap() {
     return {
       'name': name,
+      'username': name, // Backend expects username
       'ageYears': ageYears,
       'weightKg': weightKg,
       'heightCm': heightCm,
@@ -42,7 +43,7 @@ class UserProfile {
 
   factory UserProfile.fromMap(Map<String, dynamic> map) {
     return UserProfile(
-      name: map['name'] ?? '',
+      name: map['username'] ?? map['name'] ?? '',
       ageYears: map['ageYears'] ?? 30,
       weightKg: (map['weightKg'] as num?)?.toDouble() ?? 70.0,
       heightCm: (map['heightCm'] as num?)?.toDouble() ?? 170.0,

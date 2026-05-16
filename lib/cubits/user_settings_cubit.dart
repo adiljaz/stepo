@@ -74,6 +74,10 @@ class UserSettingsCubit extends Cubit<UserProfile> {
 
   Future<void> setGoal(int goal) => save(state.copyWith(dailyGoalSteps: goal));
 
+  Future<void> updateName(String newName) async {
+    await save(state.copyWith(name: newName));
+  }
+
   static Future<bool> isOnboarded() async {
     final p = await SharedPreferences.getInstance();
     return p.getBool(_kOnboarded) ?? false;
