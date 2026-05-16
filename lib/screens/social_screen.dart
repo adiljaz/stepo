@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/social_cubit.dart';
+import '../cubits/user_settings_cubit.dart';
+import '../models/user_profile.dart';
+
 class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
 
@@ -8,185 +13,33 @@ class SocialScreen extends StatefulWidget {
 }
 
 class _SocialScreenState extends State<SocialScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   int _selectedStatIndex = 0;
-
-  // ── Data ──────────────────────────────────────────────────────────────────
-  final List<Map<String, dynamic>> _friendRequests = [
-    {
-      'name': 'Ananya Pillai',
-      'steps': '13,245',
-      'location': 'Kozhikode',
-      'mutual': 3,
-      'initials': 'AP',
-      'color1': 0xFF9FE1CB,
-      'color2': 0xFF1D9E75,
-    },
-    {
-      'name': 'Vishnu Prasad',
-      'steps': '9,876',
-      'location': 'Kochi',
-      'mutual': 2,
-      'initials': 'VP',
-      'color1': 0xFF85B7EB,
-      'color2': 0xFF378ADD,
-    },
-    {
-      'name': 'Meera Raj',
-      'steps': '8,123',
-      'location': 'Calicut',
-      'mutual': 4,
-      'initials': 'MR',
-      'color1': 0xFFF0997B,
-      'color2': 0xFFD85A30,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _sentRequests = [
-    {
-      'name': 'Rahul Nair',
-      'steps': '10,230',
-      'location': 'Trivandrum',
-      'daysAgo': 2,
-      'initials': 'RN',
-      'color1': 0xFFB5D4F4,
-      'color2': 0xFF378ADD,
-    },
-    {
-      'name': 'Sreeshanth P',
-      'steps': '7,654',
-      'location': 'Thrissur',
-      'daysAgo': 5,
-      'initials': 'SP',
-      'color1': 0xFFAFA9EC,
-      'color2': 0xFF7F77DD,
-    },
-    {
-      'name': 'Aswin K',
-      'steps': '6,890',
-      'location': 'Palakkad',
-      'daysAgo': 7,
-      'initials': 'AK',
-      'color1': 0xFFFAC775,
-      'color2': 0xFFBA7517,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _friends = [
-    {
-      'name': 'Rohan Das',
-      'steps': '10,230',
-      'location': 'Kozhikode',
-      'streak': 45,
-      'isKing': true,
-      'initials': 'RD',
-      'color1': 0xFFC0DD97,
-      'color2': 0xFF639922,
-    },
-    {
-      'name': 'Amal C',
-      'steps': '11,245',
-      'location': 'Malappuram',
-      'streak': 62,
-      'isKing': false,
-      'initials': 'AC',
-      'color1': 0xFF97C459,
-      'color2': 0xFF3B6D11,
-    },
-    {
-      'name': 'Jithin Raj',
-      'steps': '8,123',
-      'location': 'Calicut',
-      'streak': 28,
-      'isKing': false,
-      'initials': 'JR',
-      'color1': 0xFFED93B1,
-      'color2': 0xFFD4537E,
-    },
-    {
-      'name': 'Ananya Pillai',
-      'steps': '13,245',
-      'location': 'Kozhikode',
-      'streak': 19,
-      'isKing': false,
-      'initials': 'AP',
-      'color1': 0xFF9FE1CB,
-      'color2': 0xFF1D9E75,
-    },
-    {
-      'name': 'Vishnu Prasad',
-      'steps': '9,876',
-      'location': 'Kochi',
-      'streak': 11,
-      'isKing': false,
-      'initials': 'VP',
-      'color1': 0xFF85B7EB,
-      'color2': 0xFF378ADD,
-    },
-  ];
-
-  final List<Map<String, dynamic>> _suggestions = [
-    {
-      'name': 'Nidhin K',
-      'subtitle': '2.3 km away · 5 mutual friends',
-      'initials': 'NK',
-      'color1': 0xFFFAC775,
-      'color2': 0xFFBA7517,
-    },
-    {
-      'name': 'Saranya M',
-      'subtitle': 'Kozhikode · 3 mutual friends',
-      'initials': 'SM',
-      'color1': 0xFFAFA9EC,
-      'color2': 0xFF534AB7,
-    },
-    {
-      'name': 'Arjun Kumar',
-      'subtitle': '1.1 km away · 7 mutual friends',
-      'initials': 'AK',
-      'color1': 0xFF9FE1CB,
-      'color2': 0xFF0F6E56,
-    },
-    {
-      'name': 'Devi R',
-      'subtitle': 'Malappuram · 2 mutual friends',
-      'initials': 'DR',
-      'color1': 0xFFF0997B,
-      'color2': 0xFFD85A30,
-    },
-  ];
-
-  // ── Tab labels with counts ────────────────────────────────────────────────
-  List<String> get _tabLabels => [
-    'All',
-    'Requests',
-    'Sent',
-    'Friends',
-    'Suggestions',
-  ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(
-          () =>
-              _selectedStatIndex =
-                  _tabController.index == 4 ? 3 : _tabController.index,
-        );
-      }
-    });
+    WidgetsBinding.instance.addObserver(this);
+    // Initial fetch
+    context.read<SocialCubit>().fetchSocialData();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<SocialCubit>().fetchSocialData();
+    }
   }
 
   // ── Colours ───────────────────────────────────────────────────────────────
@@ -202,26 +55,38 @@ class _SocialScreenState extends State<SocialScreen>
   static const Color _amberBorder = Color(0xFFFAC775);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  Widget _avatar(String initials, int c1, int c2, {double radius = 23}) {
+  Widget _avatar(String initials, int c1, int c2, {double radius = 23, String? imageUrl}) {
     return Container(
       width: radius * 2,
       height: radius * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
+        gradient: imageUrl != null && imageUrl.isNotEmpty ? null : LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(c1), Color(c2)],
         ),
       ),
-      child: Center(
-        child: Text(
-          initials,
-          style: GoogleFonts.outfit(
-            fontSize: radius * 0.72,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+      child: ClipOval(
+        child: imageUrl != null && imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _initialsAvatar(initials, radius),
+              )
+            : _initialsAvatar(initials, radius),
+      ),
+    );
+  }
+
+  Widget _initialsAvatar(String initials, double radius) {
+    return Center(
+      child: Text(
+        initials,
+        style: GoogleFonts.outfit(
+          fontSize: radius * 0.72,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
         ),
       ),
     );
@@ -249,36 +114,6 @@ class _SocialScreenState extends State<SocialScreen>
             style: GoogleFonts.outfit(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: _amber,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _pendingBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: _amberBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _amberBorder, width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.access_time_rounded,
-            size: 11,
-            color: Color(0xFFBA7517),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Pending',
-            style: GoogleFonts.outfit(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
               color: _amber,
             ),
           ),
@@ -341,118 +176,143 @@ class _SocialScreenState extends State<SocialScreen>
     );
   }
 
-  // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(),
-            _buildStatsRow(),
-            _buildTabBar(),
-            _buildSearchBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
+    return BlocListener<SocialCubit, SocialState>(
+      listener: (context, state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      },
+      child: BlocBuilder<SocialCubit, SocialState>(
+        builder: (context, state) {
+          return Scaffold(
+            backgroundColor: _bg,
+            body: SafeArea(
+              child: Column(
                 children: [
-                  _buildAllTab(),
-                  _buildRequestsTab(),
-                  _buildSentTab(),
-                  _buildFriendsTab(),
-                  _buildDiscoverTab(),
+                  _buildTopBar(),
+                  _buildStatsRow(state),
+                  _buildTabBar(state),
+                  _buildSearchBar(),
+                  Expanded(
+                    child: state.isLoading && state.friends.isEmpty && state.suggestions.isEmpty
+                        ? const Center(child: CircularProgressIndicator(color: _green))
+                        : TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildAllTab(state),
+                              _buildRequestsTab(state),
+                              _buildSentTab(state),
+                              _buildFriendsTab(state),
+                              _buildDiscoverTab(state),
+                            ],
+                          ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        backgroundColor: _green,
-        icon: const Icon(Icons.person_add_rounded, color: Colors.white),
-        label: Text(
-          'Add Friend',
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _tabController.animateTo(4),
+              backgroundColor: _green,
+              icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+              label: Text(
+                'Add Friend',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
   // ── Top Bar ───────────────────────────────────────────────────────────────
   Widget _buildTopBar() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(20, 12, 16, 16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [Color(0xFF3B6D11), Color(0xFF639922)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Center(
-              child: Text(
-                'A',
-                style: GoogleFonts.outfit(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Good Morning, 👋',
-                  style: GoogleFonts.outfit(fontSize: 12, color: _textLight),
-                ),
-                Text(
-                  'Arjun',
-                  style: GoogleFonts.outfit(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: _dark,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 4),
-          Stack(
+    return BlocBuilder<UserSettingsCubit, UserProfile>(
+      builder: (context, settings) {
+        final name = settings.name.isEmpty ? 'User' : settings.name;
+        final initials = name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase();
+        
+        return Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 12, 16, 16),
+          child: Row(
             children: [
-              _iconBtn(Icons.notifications_none_rounded, () {}),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _green,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF3B6D11), Color(0xFF639922)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                 ),
+                child: Center(
+                  child: Text(
+                    initials,
+                    style: GoogleFonts.outfit(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Good Morning, 👋',
+                      style: GoogleFonts.outfit(fontSize: 12, color: _textLight),
+                    ),
+                    Text(
+                      name,
+                      style: GoogleFonts.outfit(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: _dark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Stack(
+                children: [
+                  _iconBtn(Icons.notifications_none_rounded, () {}),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -472,24 +332,28 @@ class _SocialScreenState extends State<SocialScreen>
     );
   }
 
-  // ── Stats Row ─────────────────────────────────────────────────────────────
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(SocialState state) {
     final stats = [
       {
-        'val': '128',
+        'val': state.friends.length.toString(),
         'lbl': 'Friends',
         'badge': '',
         'icon': Icons.people_outline_rounded,
       },
       {
-        'val': '23',
+        'val': state.incomingRequests.length.toString(),
         'lbl': 'Requests',
-        'badge': '3',
+        'badge': state.incomingRequests.isNotEmpty ? state.incomingRequests.length.toString() : '',
         'icon': Icons.person_add_outlined,
       },
-      {'val': '12', 'lbl': 'Sent', 'badge': '', 'icon': Icons.send_outlined},
       {
-        'val': '56',
+        'val': state.sentRequests.length.toString(),
+        'lbl': 'Sent',
+        'badge': '',
+        'icon': Icons.send_outlined,
+      },
+      {
+        'val': state.suggestions.length.toString(),
         'lbl': 'Suggestions',
         'badge': '',
         'icon': Icons.auto_awesome_outlined,
@@ -507,8 +371,6 @@ class _SocialScreenState extends State<SocialScreen>
             child: GestureDetector(
               onTap: () {
                 setState(() => _selectedStatIndex = i);
-                _tabController.animateTo(i == 3 ? 4 : i + (i == 0 ? 0 : 0));
-                // Map stat index to tab index
                 final tabIdx = [0, 1, 2, 4];
                 _tabController.animateTo(tabIdx[i]);
               },
@@ -550,8 +412,8 @@ class _SocialScreenState extends State<SocialScreen>
                           const SizedBox(width: 3),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 1,
+                              horizontal: 6,
+                              vertical: 1.5,
                             ),
                             decoration: BoxDecoration(
                               color:
@@ -565,7 +427,7 @@ class _SocialScreenState extends State<SocialScreen>
                               style: GoogleFonts.outfit(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: isActive ? Colors.white : Colors.white,
+                                color: Colors.white,
                               ),
                             ),
                           ),
@@ -595,7 +457,7 @@ class _SocialScreenState extends State<SocialScreen>
   }
 
   // ── Tab Bar ───────────────────────────────────────────────────────────────
-  Widget _buildTabBar() {
+  Widget _buildTabBar(SocialState state) {
     return Container(
       color: Colors.white,
       child: TabBar(
@@ -623,31 +485,33 @@ class _SocialScreenState extends State<SocialScreen>
             child: Row(
               children: [
                 const Text('Requests'),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _green,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '3',
-                    style: GoogleFonts.outfit(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                if (state.incomingRequests.isNotEmpty) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _green,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      state.incomingRequests.length.toString(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
-          const Tab(text: 'Sent 12'),
-          const Tab(text: 'Friends 128'),
-          const Tab(text: 'Suggestions 56'),
+          Tab(text: 'Sent ${state.sentRequests.length}'),
+          Tab(text: 'Friends ${state.friends.length}'),
+          Tab(text: 'Suggestions ${state.suggestions.length}'),
         ],
       ),
     );
@@ -670,6 +534,9 @@ class _SocialScreenState extends State<SocialScreen>
               child: TextField(
                 controller: _searchController,
                 style: GoogleFonts.outfit(fontSize: 14, color: _dark),
+                onChanged: (val) {
+                  context.read<SocialCubit>().searchUsers(val);
+                },
                 decoration: InputDecoration(
                   hintText: 'Search friends by name...',
                   hintStyle: GoogleFonts.outfit(
@@ -681,6 +548,15 @@ class _SocialScreenState extends State<SocialScreen>
                     color: Color(0xFFAAAAAA),
                     size: 18,
                   ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            context.read<SocialCubit>().clearSearch();
+                          },
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
@@ -708,132 +584,170 @@ class _SocialScreenState extends State<SocialScreen>
   }
 
   // ── ALL TAB ───────────────────────────────────────────────────────────────
-  Widget _buildAllTab() {
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 100),
-      children: [
-        // ── Friend Ranking Podium
-        _buildRankingPodium(),
-
-        // ── Friend Requests section
-        _sectionHeader(
-          'Friend Requests',
-          Icons.person_add_outlined,
-          '3 new',
-          onViewAll: () => _tabController.animateTo(1),
-        ),
-        ..._friendRequests.map((r) => _buildRequestCard(r)),
-
-        const SizedBox(height: 20),
-
-        // ── Sent Requests section
-        _sectionHeader(
-          'Requests Sent',
-          Icons.send_outlined,
-          '12 pending',
-          onViewAll: () => _tabController.animateTo(2),
-        ),
-        ..._sentRequests.take(2).map((r) => _buildSentCard(r)),
-
-        const SizedBox(height: 20),
-
-        // ── Friends section
-        _sectionHeader(
-          'Your Friends',
-          Icons.people_outline_rounded,
-          '128',
-          onViewAll: () => _tabController.animateTo(3),
-        ),
-        ..._friends.take(3).map((f) => _buildFriendCard(f)),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: GestureDetector(
-            onTap: () => _tabController.animateTo(3),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: _greenMint,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFC0DD97), width: 0.5),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.people_outline_rounded,
-                    color: Color(0xFF3B6D11),
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'View all 128 friends',
-                    style: GoogleFonts.outfit(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _greenDark,
+  Widget _buildAllTab(SocialState state) {
+    return RefreshIndicator(
+      onRefresh: () => context.read<SocialCubit>().fetchSocialData(),
+      color: _green,
+      child: ListView(
+        padding: const EdgeInsets.only(bottom: 100),
+        children: [
+          _buildRankingPodium(state.friends),
+          if (state.incomingRequests.isNotEmpty) ...[
+          _sectionHeader(
+            'Friend Requests',
+            Icons.person_add_outlined,
+            '${state.incomingRequests.length} new',
+            onViewAll: () => _tabController.animateTo(1),
+          ),
+          ...state.incomingRequests.take(2).map((r) => _buildRequestCard(r)),
+          const SizedBox(height: 20),
+        ],
+        if (state.sentRequests.isNotEmpty) ...[
+          _sectionHeader(
+            'Requests Sent',
+            Icons.send_outlined,
+            '${state.sentRequests.length} pending',
+            onViewAll: () => _tabController.animateTo(2),
+          ),
+          ...state.sentRequests.take(1).map((r) => _buildSentCard(r)),
+          const SizedBox(height: 20),
+        ],
+        if (state.friends.isNotEmpty) ...[
+          _sectionHeader(
+            'Your Friends',
+            Icons.people_outline_rounded,
+            state.friends.length.toString(),
+            onViewAll: () => _tabController.animateTo(3),
+          ),
+          ...state.friends.take(3).map((f) => _buildFriendCard(f)),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GestureDetector(
+              onTap: () => _tabController.animateTo(3),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: _greenMint,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFC0DD97), width: 0.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.people_outline_rounded,
+                      color: Color(0xFF3B6D11),
+                      size: 18,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Text(
+                      'View all ${state.friends.length} friends',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _greenDark,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ],
+    ),
+  );
+}
+
+  Widget _buildRequestsTab(SocialState state) {
+    return RefreshIndicator(
+      onRefresh: () => context.read<SocialCubit>().fetchSocialData(),
+      color: _green,
+      child: ListView(
+        padding: const EdgeInsets.only(top: 8, bottom: 100),
+        children: [
+          _sectionHeader('Incoming Requests', Icons.person_add_outlined, state.incomingRequests.length.toString()),
+          if (state.incomingRequests.isEmpty) _buildEmptyState('No pending requests', Icons.person_add_disabled_outlined),
+          ...state.incomingRequests.map((r) => _buildRequestCard(r)),
+        ],
+      ),
     );
   }
 
-  // ── REQUESTS TAB ──────────────────────────────────────────────────────────
-  Widget _buildRequestsTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 100),
-      children: [
-        _sectionHeader('Incoming Requests', Icons.person_add_outlined, '3'),
-        ..._friendRequests.map((r) => _buildRequestCard(r)),
-      ],
+  Widget _buildSentTab(SocialState state) {
+    return RefreshIndicator(
+      onRefresh: () => context.read<SocialCubit>().fetchSocialData(),
+      color: _green,
+      child: ListView(
+        padding: const EdgeInsets.only(top: 8, bottom: 100),
+        children: [
+          _sectionHeader('Sent Requests', Icons.send_outlined, '${state.sentRequests.length} pending'),
+          if (state.sentRequests.isEmpty) _buildEmptyState('No sent requests', Icons.send_and_archive_outlined),
+          ...state.sentRequests.map((r) => _buildSentCard(r)),
+        ],
+      ),
     );
   }
 
-  // ── SENT TAB ──────────────────────────────────────────────────────────────
-  Widget _buildSentTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 100),
-      children: [
-        _sectionHeader('Sent Requests', Icons.send_outlined, '12 pending'),
-        ..._sentRequests.map((r) => _buildSentCard(r)),
-      ],
+  Widget _buildFriendsTab(SocialState state) {
+    return RefreshIndicator(
+      onRefresh: () => context.read<SocialCubit>().fetchSocialData(),
+      color: _green,
+      child: ListView(
+        padding: const EdgeInsets.only(top: 8, bottom: 100),
+        children: [
+          _sectionHeader('All Friends', Icons.people_outline_rounded, state.friends.length.toString()),
+          if (state.friends.isEmpty) _buildEmptyState('No friends yet', Icons.people_outline_rounded),
+          ...state.friends.map((f) => _buildFriendCard(f)),
+        ],
+      ),
     );
   }
 
-  // ── FRIENDS TAB ───────────────────────────────────────────────────────────
-  Widget _buildFriendsTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 100),
-      children: [
-        _sectionHeader('All Friends', Icons.people_outline_rounded, '128'),
-        ..._friends.map((f) => _buildFriendCard(f)),
-      ],
+  Widget _buildDiscoverTab(SocialState state) {
+    if (state.isSearching) {
+      return const Center(child: CircularProgressIndicator(color: _green));
+    }
+
+    final hasSearchQuery = _searchController.text.isNotEmpty;
+    final displayUsers = hasSearchQuery ? state.searchResults : state.suggestions;
+    final title = hasSearchQuery ? 'Search Results' : 'Suggestions';
+    final emptyMsg = hasSearchQuery ? 'No users found' : 'No suggestions';
+
+    return RefreshIndicator(
+      onRefresh: () => context.read<SocialCubit>().fetchSocialData(),
+      color: _green,
+      child: ListView(
+        padding: const EdgeInsets.only(top: 8, bottom: 100),
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          _sectionHeader(title, hasSearchQuery ? Icons.search_rounded : Icons.auto_awesome_outlined, '${displayUsers.length} found'),
+          if (displayUsers.isEmpty) _buildEmptyState(emptyMsg, hasSearchQuery ? Icons.person_search_rounded : Icons.auto_awesome_motion_outlined),
+          ...displayUsers.map((s) => _buildSuggestionCard(s)),
+        ],
+      ),
     );
   }
 
-  // ── DISCOVER / SUGGESTIONS TAB ────────────────────────────────────────────
-  Widget _buildDiscoverTab() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 8, bottom: 100),
-      children: [
-        _sectionHeader(
-          'Suggestions',
-          Icons.auto_awesome_outlined,
-          '56 near you',
-        ),
-        ..._suggestions.map((s) => _buildSuggestionCard(s)),
-      ],
+  Widget _buildEmptyState(String msg, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 60),
+      child: Column(
+        children: [
+          Icon(icon, size: 64, color: _border),
+          const SizedBox(height: 16),
+          Text(
+            msg,
+            style: GoogleFonts.outfit(fontSize: 16, color: _textLight, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 
-  // ── Card Builders ─────────────────────────────────────────────────────────
-  Widget _buildRequestCard(Map<String, dynamic> r) {
+  Widget _buildRequestCard(SocialUser r) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Container(
@@ -845,14 +759,14 @@ class _SocialScreenState extends State<SocialScreen>
         ),
         child: Row(
           children: [
-            _avatar(r['initials'], r['color1'], r['color2']),
+            _avatar(r.initials, r.color1, r.color2, imageUrl: r.profileImage),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    r['name'],
+                    r.name,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -863,7 +777,7 @@ class _SocialScreenState extends State<SocialScreen>
                   Row(
                     children: [
                       Text(
-                        '${r['steps']} steps',
+                        '${r.steps} steps',
                         style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -881,27 +795,9 @@ class _SocialScreenState extends State<SocialScreen>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        r['location'],
+                        r.location,
                         style: GoogleFonts.outfit(
                           fontSize: 12,
-                          color: _textLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.people_outline_rounded,
-                        size: 12,
-                        color: Color(0xFFAAAAAA),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${r['mutual']} mutual friends',
-                        style: GoogleFonts.outfit(
-                          fontSize: 11,
                           color: _textLight,
                         ),
                       ),
@@ -916,10 +812,15 @@ class _SocialScreenState extends State<SocialScreen>
                   Icons.close_rounded,
                   Colors.grey.shade400,
                   const Color(0xFFF8F8F8),
-                  () {},
+                  () => context.read<SocialCubit>().rejectRequest(r),
                 ),
                 const SizedBox(width: 8),
-                _roundBtn(Icons.check_rounded, Colors.white, _green, () {}),
+                _roundBtn(
+                  Icons.check_rounded,
+                  Colors.white,
+                  _green,
+                  () => context.read<SocialCubit>().acceptRequest(r),
+                ),
               ],
             ),
           ],
@@ -928,7 +829,7 @@ class _SocialScreenState extends State<SocialScreen>
     );
   }
 
-  Widget _buildSentCard(Map<String, dynamic> r) {
+  Widget _buildSentCard(SocialUser r) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Container(
@@ -940,14 +841,14 @@ class _SocialScreenState extends State<SocialScreen>
         ),
         child: Row(
           children: [
-            _avatar(r['initials'], r['color1'], r['color2']),
+            _avatar(r.initials, r.color1, r.color2),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    r['name'],
+                    r.name,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -955,70 +856,26 @@ class _SocialScreenState extends State<SocialScreen>
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Text(
-                        '${r['steps']} steps',
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: _green,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        width: 3,
-                        height: 3,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFCCCCCC),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        r['location'],
-                        style: GoogleFonts.outfit(
-                          fontSize: 12,
-                          color: _textLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
                   Text(
-                    'Sent ${r['daysAgo']} days ago',
-                    style: GoogleFonts.outfit(fontSize: 11, color: _textLight),
+                    '${r.steps} steps · ${r.location}',
+                    style: GoogleFonts.outfit(fontSize: 12, color: _textLight),
                   ),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _pendingBadge(),
-                const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F1F1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Cancel',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _textLight,
-                      ),
-                    ),
-                  ),
+            GestureDetector(
+              onTap: () => context.read<SocialCubit>().cancelRequest(r),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F1F1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w700, color: _textLight),
+                ),
+              ),
             ),
           ],
         ),
@@ -1026,7 +883,7 @@ class _SocialScreenState extends State<SocialScreen>
     );
   }
 
-  Widget _buildFriendCard(Map<String, dynamic> f) {
+  Widget _buildFriendCard(SocialUser f) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Container(
@@ -1038,7 +895,7 @@ class _SocialScreenState extends State<SocialScreen>
         ),
         child: Row(
           children: [
-            _avatar(f['initials'], f['color1'], f['color2']),
+            _avatar(f.initials, f.color1, f.color2, imageUrl: f.profileImage),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -1047,14 +904,14 @@ class _SocialScreenState extends State<SocialScreen>
                   Row(
                     children: [
                       Text(
-                        f['name'],
+                        f.name,
                         style: GoogleFonts.outfit(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: _dark,
                         ),
                       ),
-                      if (f['isKing'] == true) ...[
+                      if (f.isKing) ...[
                         const SizedBox(width: 6),
                         const Text('👑', style: TextStyle(fontSize: 13)),
                       ],
@@ -1062,26 +919,20 @@ class _SocialScreenState extends State<SocialScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${f['steps']} steps · ${f['location']}',
+                    '${f.steps} steps · ${f.location}',
                     style: GoogleFonts.outfit(fontSize: 12, color: _textLight),
                   ),
                 ],
               ),
             ),
-            _streakTag(f['streak'] as int),
-            const SizedBox(width: 6),
-            const Icon(
-              Icons.more_vert_rounded,
-              color: Color(0xFFBBBBBB),
-              size: 20,
-            ),
+            if (f.streak > 0) _streakTag(f.streak),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSuggestionCard(Map<String, dynamic> s) {
+  Widget _buildSuggestionCard(SocialUser s) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Container(
@@ -1093,14 +944,14 @@ class _SocialScreenState extends State<SocialScreen>
         ),
         child: Row(
           children: [
-            _avatar(s['initials'], s['color1'], s['color2']),
+            _avatar(s.initials, s.color1, s.color2, imageUrl: s.profileImage),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    s['name'],
+                    s.name,
                     style: GoogleFonts.outfit(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -1109,30 +960,23 @@ class _SocialScreenState extends State<SocialScreen>
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    s['subtitle'],
+                    '${s.location} · ${s.mutualFriends} mutual',
                     style: GoogleFonts.outfit(fontSize: 12, color: _greenDark),
                   ),
                 ],
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () => context.read<SocialCubit>().sendRequest(s),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: _green,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   'Connect',
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
                 ),
               ),
             ),
@@ -1163,7 +1007,20 @@ class _SocialScreenState extends State<SocialScreen>
     );
   }
 
-  Widget _buildRankingPodium() {
+  Widget _buildRankingPodium(List<SocialUser> friends) {
+    // Sort friends by steps descending
+    final sortedFriends = List<SocialUser>.from(friends)
+      ..sort((a, b) {
+        int stepsA = int.tryParse(a.steps.replaceAll(',', '')) ?? 0;
+        int stepsB = int.tryParse(b.steps.replaceAll(',', '')) ?? 0;
+        return stepsB.compareTo(stepsA);
+      });
+
+    // Get top 3 or placeholders
+    SocialUser? first = sortedFriends.length > 0 ? sortedFriends[0] : null;
+    SocialUser? second = sortedFriends.length > 1 ? sortedFriends[1] : null;
+    SocialUser? third = sortedFriends.length > 2 ? sortedFriends[2] : null;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 8, 20, 20),
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -1194,15 +1051,54 @@ class _SocialScreenState extends State<SocialScreen>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // 2nd Place
-              _podiumItem("Amal C", "11,245", 2, "AC", 0xFF97C459, 0xFF3B6D11, 80),
+              if (second != null)
+                _podiumItem(second.name.split(' ')[0], second.steps, 2, second.initials, second.color1, second.color2, 80)
+              else
+                _podiumPlaceholder(2, 80),
+              
               // 1st Place
-              _podiumItem("Ananya P", "13,245", 1, "AP", 0xFF9FE1CB, 0xFF1D9E75, 110),
+              if (first != null)
+                _podiumItem(first.name.split(' ')[0], first.steps, 1, first.initials, first.color1, first.color2, 110)
+              else
+                _podiumPlaceholder(1, 110),
+                
               // 3rd Place
-              _podiumItem("Rohan Das", "10,230", 3, "RD", 0xFFC0DD97, 0xFF639922, 60),
+              if (third != null)
+                _podiumItem(third.name.split(' ')[0], third.steps, 3, third.initials, third.color1, third.color2, 60)
+              else
+                _podiumPlaceholder(3, 60),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _podiumPlaceholder(int rank, double height) {
+    return Column(
+      children: [
+        Container(
+          width: rank == 1 ? 60 : 50,
+          height: rank == 1 ? 60 : 50,
+          decoration: BoxDecoration(
+            color: _bg,
+            shape: BoxShape.circle,
+            border: Border.all(color: _border, width: 1),
+          ),
+          child: Center(child: Icon(Icons.person_outline, color: _border, size: rank == 1 ? 30 : 25)),
+        ),
+        const SizedBox(height: 8),
+        Text("...", style: GoogleFonts.outfit(fontSize: 12, color: _border)),
+        const SizedBox(height: 12),
+        Container(
+          width: 60,
+          height: height,
+          decoration: BoxDecoration(
+            color: _bg.withValues(alpha: 0.5),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1217,7 +1113,7 @@ class _SocialScreenState extends State<SocialScreen>
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: _avatar(initials, c1, c2, radius: avatarSize),
+              child: _avatar(initials, c1, c2, radius: avatarSize), // Podium might not need imageUrl as it's small or we can add it later
             ),
             Container(
               padding: const EdgeInsets.all(4),

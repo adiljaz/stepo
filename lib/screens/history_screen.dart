@@ -37,7 +37,7 @@ class HistoryScreen extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: FutureBuilder<_HistoryData>(
-              future: _loadData(profile.dailyGoalSteps),
+              future: _loadData(profile.dailyGoalSteps, profile.streakCount),
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done || snap.data == null) {
                   return const Center(child: Padding(
@@ -55,9 +55,9 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-  Future<_HistoryData> _loadData(int goal) async {
+  Future<_HistoryData> _loadData(int goal, int streak) async {
     final records = await StepDatabase.getRecent(30);
-    return _HistoryData(records: records, streak: 5); // Dummy streak for now
+    return _HistoryData(records: records, streak: streak);
   }
 }
 
@@ -83,7 +83,7 @@ class _HistoryBody extends StatelessWidget {
       children: [
         const SizedBox(height: 10),
         Text(
-          "13 May - 19 May", // Example range
+          _getDateRangeLabel(data.records),
           style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -113,6 +113,14 @@ class _HistoryBody extends StatelessWidget {
         const SizedBox(height: 120),
       ],
     );
+  }
+
+  String _getDateRangeLabel(List<DailyRecord> records) {
+    if (records.isEmpty) return "No Records";
+    final latest = DateTime.parse(records.first.date);
+    final earliest = DateTime.parse(records.last.date);
+    final months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return "${earliest.day} ${months[earliest.month]} - ${latest.day} ${months[latest.month]}";
   }
 }
 

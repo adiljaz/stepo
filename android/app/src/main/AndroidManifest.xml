@@ -27,7 +27,8 @@
     <application
         android:label="stepooo"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true">
         
         <!-- Foreground Service for background tracking (Android 14+ compliant) -->
         <service

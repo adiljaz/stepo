@@ -12,6 +12,7 @@ import '../services/v7/gps_kalman_filter.dart';
 import '../utils/logger.dart';
 import '../models/locomotion_state.dart';
 import '../services/v7/locomotion_classifier.dart';
+import 'user_settings_cubit.dart';
 
 // Import v7 Deliverables
 import '../services/v7/adaptive_sensor_controller.dart';
@@ -99,7 +100,9 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   final StrideCalibrator _strideEngine = StrideCalibrator();
   final ApiService _apiService = ApiService();
   final AuthService _authService = AuthService();
+  final UserSettingsCubit _settingsCubit;
   StreamSubscription<Position>? _gpsSub;
+  StreamSubscription<UserProfile>? _settingsSub;
   
   int _lastSyncedToCloud = 0;
 
@@ -118,8 +121,9 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   bool _isInitialized = false;
   AISensitivity _currentSensitivity = AISensitivity.normal;
   double _currentStrideLength = 0.762;
+  int _currentGoal = 10000;
 
-  StepTrackerCubit() : super(StepTrackerState(
+  StepTrackerCubit(this._settingsCubit) : super(StepTrackerState(
     steps: 0,
     pendingSteps: 0,
     mlConfidence: 0,
@@ -132,6 +136,8 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
     locomotionState: const StationaryState(),
   )) {
     initialize();
+    _settingsSub = _settingsCubit.stream.listen((p) => updateProfile(p));
+    updateProfile(_settingsCubit.state);
   }
 
   Future<void> initialize() async {
@@ -205,6 +211,8 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   void updateProfile(UserProfile p) {
     _currentSensitivity = p.aiSensitivity;
     _currentStrideLength = p.strideLengthMeters;
+    _currentGoal = p.dailyGoalSteps;
+    _updateUI(state.currentTier, state.mlConfidence, state.fftFreq);
   }
 
   void _onSensorSample(double ax, double ay, double az, double gx, double gy, double gz, double dt) {
@@ -312,14 +320,18 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
       isi: 600.0,
     );
     
-    StepDatabase.upsertToday(steps: _totalDailySteps, distanceKm: _totalDailySteps * _currentStrideLength / 1000.0, calories: _totalDailySteps * AppConfig.kCaloriesPerStepWalk);
+    StepDatabase.upsertToday(
+      steps: _totalDailySteps, 
+      distanceKm: newDist, 
+      calories: newCals,
+    );
     
     _syncToCloudIfNeeded();
   }
 
   Future<void> _syncToCloudIfNeeded() async {
-    // Sync every 500 steps or if it's the first sync of the session
-    if ((_totalDailySteps - _lastSyncedToCloud).abs() >= 500 || _lastSyncedToCloud == 0) {
+    // Sync every 100 steps or if it's the first sync of the session
+    if ((_totalDailySteps - _lastSyncedToCloud).abs() >= 100 || _lastSyncedToCloud == 0) {
       if (await AuthService.isLoggedIn()) {
         try {
           await _apiService.syncSteps(_totalDailySteps);
@@ -400,7 +412,7 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
     // Update Background Notification
     FlutterBackgroundService().invoke('updateNotification', {
       "steps": _totalDailySteps,
-      "goal": 10000, 
+      "goal": _currentGoal, 
       "locomotion": state.locomotionState.runtimeType.toString().replaceAll('State', ''),
       "distance": state.distanceKm,
       "calories": state.calories,
@@ -432,6 +444,7 @@ class StepTrackerCubit extends Cubit<StepTrackerState> {
   Future<void> close() {
     _inactivityTimer?.cancel();
     _gpsSub?.cancel();
+    _settingsSub?.cancel();
     _sensorController.stop();
     _barometerTracker.stop();
     _hwFusion.stop();

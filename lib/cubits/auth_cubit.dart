@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../services/auth_service.dart';
 import '../core/storage/secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'user_settings_cubit.dart';
 
-enum AuthStatus { initial, loading, authenticated, unauthenticated, onboardingRequired, error }
+enum AuthStatus { initial, loading, authenticated, unauthenticated, profileSetupRequired, error }
 
 class AuthState {
   final AuthStatus status;
@@ -15,29 +15,27 @@ class AuthState {
   factory AuthState.loading() => AuthState(status: AuthStatus.loading);
   factory AuthState.authenticated() => AuthState(status: AuthStatus.authenticated);
   factory AuthState.unauthenticated() => AuthState(status: AuthStatus.unauthenticated);
-  factory AuthState.onboardingRequired() => AuthState(status: AuthStatus.onboardingRequired);
+  factory AuthState.profileSetupRequired() => AuthState(status: AuthStatus.profileSetupRequired);
   factory AuthState.error(String message) => AuthState(status: AuthStatus.error, errorMessage: message);
 }
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthService _authService = AuthService();
+  final UserSettingsCubit _settingsCubit;
 
-  AuthCubit() : super(AuthState.initial());
+  AuthCubit(this._settingsCubit) : super(AuthState.initial());
 
   Future<void> checkAuth() async {
     emit(AuthState.loading());
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-
-      if (!onboardingCompleted) {
-        emit(AuthState.onboardingRequired());
-        return;
-      }
-
       final token = await SecureStorage.read('access_token');
       if (token != null) {
-        emit(AuthState.authenticated());
+        final profileSetupDone = await UserSettingsCubit.isOnboarded();
+        if (!profileSetupDone) {
+          emit(AuthState.profileSetupRequired());
+        } else {
+          emit(AuthState.authenticated());
+        }
       } else {
         emit(AuthState.unauthenticated());
       }
@@ -48,11 +46,44 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> login(String email, String password) async {
     emit(AuthState.loading());
-    final success = await _authService.loginWithEmail(email, password);
-    if (success) {
+    try {
+      final userData = await _authService.loginWithEmail(email, password);
+      await _handleAuthSuccess(userData);
+    } catch (e) {
+      emit(AuthState.error(e.toString()));
+    }
+  }
+
+  Future<void> _handleAuthSuccess(Map<String, dynamic>? userData) async {
+    if (userData == null) {
+      emit(AuthState.unauthenticated());
+      return;
+    }
+
+    final name = userData['username'] ?? userData['name'] ?? '';
+    final profileImage = userData['profileImage'] ?? '';
+    final hasCompleteProfile = name.isNotEmpty && name != 'User';
+
+    if (hasCompleteProfile) {
+      // Mark as onboarded locally
+      await UserSettingsCubit.setLocalOnboarded(true);
+      
+      // Sync the settings cubit with server data
+      await _settingsCubit.syncFromServer();
+      
       emit(AuthState.authenticated());
     } else {
-      emit(AuthState.error("Invalid credentials"));
+      emit(AuthState.profileSetupRequired());
+    }
+  }
+
+  Future<void> loginWithGoogle() async {
+    emit(AuthState.loading());
+    try {
+      final userData = await _authService.signIn();
+      await _handleAuthSuccess(userData);
+    } catch (e) {
+      emit(AuthState.error(e.toString()));
     }
   }
 
@@ -62,15 +93,15 @@ class AuthCubit extends Cubit<AuthState> {
     required String password,
   }) async {
     emit(AuthState.loading());
-    final success = await _authService.signUpWithEmail(
-      name: name,
-      email: email,
-      password: password,
-    );
-    if (success) {
-      emit(AuthState.authenticated());
-    } else {
-      emit(AuthState.error("Signup failed. Email might be in use."));
+    try {
+      final userData = await _authService.signUpWithEmail(
+        name: name,
+        email: email,
+        password: password,
+      );
+      await _handleAuthSuccess(userData);
+    } catch (e) {
+      emit(AuthState.error(e.toString()));
     }
   }
 
@@ -79,9 +110,7 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthState.unauthenticated());
   }
 
-  Future<void> completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('onboarding_completed', true);
-    emit(AuthState.unauthenticated()); // After onboarding, go to Login
+  void completeProfileSetup() {
+    emit(AuthState.authenticated());
   }
 }

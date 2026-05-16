@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/step_tracker_cubit.dart';
+import '../cubits/user_settings_cubit.dart';
+import '../models/user_profile.dart';
+import '../utils/int_formatting.dart';
 
 class ChallengesScreen extends StatelessWidget {
   const ChallengesScreen({super.key});
@@ -60,13 +65,17 @@ class _ExploreChallenges extends StatelessWidget {
         children: [
           _SectionHeader(title: "Ongoing", action: "View all"),
           const SizedBox(height: 16),
-          const _OngoingDuelCard(
-            title: "10K Steps Battle",
-            endsIn: "10:23:45",
-            p1Name: "You",
-            p1Steps: 8749,
-            p2Name: "Rohan Das",
-            p2Steps: 8649,
+          BlocBuilder<StepTrackerCubit, StepTrackerState>(
+            builder: (context, state) {
+              return _OngoingDuelCard(
+                title: "10K Steps Battle",
+                endsIn: "10:23:45",
+                p1Name: "You",
+                p1Steps: state.steps,
+                p2Name: "Rohan Das",
+                p2Steps: 8649,
+              );
+            },
           ),
           const SizedBox(height: 32),
           _SectionHeader(title: "Popular Challenges"),
@@ -134,7 +143,8 @@ class _OngoingDuelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final diff = (p1Steps - p2Steps).abs();
+    final diff = (p1Steps - p2Steps).abs().toLocaleString();
+    final isLeading = p1Steps >= p2Steps;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -150,9 +160,9 @@ class _OngoingDuelCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _UserDuelAvatar(name: p1Name, steps: p1Steps, isLeading: p1Steps >= p2Steps),
+              _UserDuelAvatar(name: p1Name, steps: p1Steps, isLeading: p1Steps >= p2Steps, isMe: true),
               Text("VS", style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w900, color: const Color(0xFFEEEEEE))),
-              _UserDuelAvatar(name: p2Name, steps: p2Steps, isLeading: p2Steps > p1Steps),
+              _UserDuelAvatar(name: p2Name, steps: p2Steps, isLeading: p2Steps > p1Steps, isMe: false),
             ],
           ),
           const SizedBox(height: 20),
@@ -160,7 +170,9 @@ class _OngoingDuelCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
             child: Text(
-              "You are leading by $diff steps 🏆",
+              isLeading 
+                ? "You are leading by $diff steps 🏆" 
+                : "You are trailing by $diff steps 📈",
               style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textDark),
             ),
           ),
@@ -174,19 +186,31 @@ class _UserDuelAvatar extends StatelessWidget {
   final String name;
   final int steps;
   final bool isLeading;
-  const _UserDuelAvatar({required this.name, required this.steps, required this.isLeading});
+  final bool isMe;
+  const _UserDuelAvatar({required this.name, required this.steps, required this.isLeading, required this.isMe});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 50, height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: isLeading ? AppTheme.primaryGreen : Colors.transparent, width: 2),
-            image: const DecorationImage(image: NetworkImage('https://i.pravatar.cc/100'), fit: BoxFit.cover),
-          ),
+        BlocBuilder<UserSettingsCubit, UserProfile>(
+          builder: (context, profile) {
+            final hasImage = isMe && profile.profileImage.isNotEmpty;
+            return Container(
+              width: 50, height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: isLeading ? AppTheme.primaryGreen : Colors.transparent, width: 2),
+                color: isMe ? const Color(0xFFF0F7ED) : null,
+                image: hasImage 
+                    ? DecorationImage(image: NetworkImage(profile.profileImage), fit: BoxFit.cover)
+                    : (!isMe ? const DecorationImage(image: NetworkImage('https://i.pravatar.cc/100'), fit: BoxFit.cover) : null),
+              ),
+              child: isMe && !hasImage 
+                ? Center(child: Text(profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)))
+                : null,
+            );
+          },
         ),
         const SizedBox(height: 8),
         Text(name, style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textDark)),

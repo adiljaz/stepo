@@ -59,4 +59,45 @@ class ApiService {
   Future<Response> getProfile() async {
     return await _dio.get('/users/me');
   }
+
+  Future<Response> updateProfile(Map<String, dynamic> profileData) async {
+    return await _dio.put('/users/profile', data: profileData);
+  }
+
+  // Social
+  Future<Response> getFriends() async {
+    return await _dio.get('/social/friends');
+  }
+
+  Future<Response> getFriendRequests() async {
+    return await _dio.get('/social/requests');
+  }
+
+  Future<Response> getSentRequests() async {
+    return await _dio.get('/social/sent-requests');
+  }
+
+  Future<Response> getSuggestions() async {
+    return await _dio.get('/social/suggestions');
+  }
+
+  Future<Response> searchUsers(String query) async {
+    return await _dio.get('/social/search', queryParameters: {'q': query});
+  }
+
+  Future<Response> sendFriendRequest(String userId) async {
+    return await _dio.post('/social/request/send', data: {'userId': userId});
+  }
+
+  Future<Response> acceptFriendRequest(String userId) async {
+    return await _dio.post('/social/request/accept', data: {'userId': userId});
+  }
+
+  Future<Response> rejectFriendRequest(String userId) async {
+    return await _dio.post('/social/request/reject', data: {'userId': userId});
+  }
+
+  Future<Response> cancelFriendRequest(String userId) async {
+    return await _dio.post('/social/request/cancel', data: {'userId': userId});
+  }
 }

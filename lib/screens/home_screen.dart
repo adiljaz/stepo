@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stepooo/theme/app_theme.dart';
 import '../cubits/step_tracker_cubit.dart';
 import '../cubits/user_settings_cubit.dart';
+import '../cubits/insight_cubit.dart';
 import '../models/user_profile.dart';
+import '../utils/int_formatting.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'social_screen.dart';
@@ -21,6 +23,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedNav = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load insights initially
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final profile = context.read<UserSettingsCubit>().state;
+      context.read<InsightCubit>().loadInsights(profile.dailyGoalSteps);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +79,7 @@ class _DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = profile.name.isNotEmpty ? profile.name : "Arjun";
+    final name = profile.name.isNotEmpty ? profile.name : "User";
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -83,13 +95,27 @@ class _DashboardView extends StatelessWidget {
                 Container(
                   width: 44,
                   height: 44,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage('https://i.pravatar.cc/150?u=arjun'),
-                      fit: BoxFit.cover,
+                    gradient: profile.profileImage.isNotEmpty ? null : const LinearGradient(
+                      colors: [Color(0xFF3B6D11), Color(0xFF639922)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    image: profile.profileImage.isNotEmpty 
+                        ? DecorationImage(image: NetworkImage(profile.profileImage), fit: BoxFit.cover)
+                        : null,
                   ),
+                  child: profile.profileImage.isEmpty ? Center(
+                    child: Text(
+                      name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ) : null,
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -133,7 +159,7 @@ class _DashboardView extends StatelessWidget {
             const SizedBox(height: 30),
 
             // Progress Circle
-            Center(child: _StepProgressRing(steps: state.steps, goal: 10000)),
+            Center(child: _StepProgressRing(steps: state.steps, goal: profile.dailyGoalSteps)),
 
             const SizedBox(height: 30),
 
@@ -171,7 +197,7 @@ class _DashboardView extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Streak Card
-            const _StreakCard(),
+            _StreakCard(streak: profile.streakCount, profile: profile),
 
             const SizedBox(height: 20),
 
@@ -181,7 +207,26 @@ class _DashboardView extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Insight Card
-            const _InsightCard(),
+            BlocBuilder<InsightCubit, InsightState>(
+              builder: (context, insightState) {
+                if (insightState is InsightLoaded && insightState.insights.isNotEmpty) {
+                  final topInsight = insightState.insights.first;
+                  return _InsightCard(
+                    title: topInsight.title,
+                    body: topInsight.body,
+                    emoji: topInsight.emoji,
+                  );
+                }
+                // Fallback to progress insight if no special insights yet
+                return _InsightCard(
+                  title: "Today's Progress",
+                  body: state.steps >= profile.dailyGoalSteps 
+                    ? "Goal reached! You're crushing it today. Keep going!"
+                    : "You're ${(profile.dailyGoalSteps - state.steps).toLocaleString()} steps away from reaching your goal.",
+                  emoji: "🎯",
+                );
+              },
+            ),
 
             const SizedBox(height: 20),
 
@@ -341,7 +386,9 @@ class _MetricItem extends StatelessWidget {
 }
 
 class _StreakCard extends StatelessWidget {
-  const _StreakCard();
+  final int streak;
+  final UserProfile profile;
+  const _StreakCard({required this.streak, required this.profile});
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +433,7 @@ class _StreakCard extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                "5",
+                streak.toString(),
                 style: GoogleFonts.outfit(
                   fontSize: 28,
                   fontWeight: FontWeight.w900,
@@ -406,7 +453,7 @@ class _StreakCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            "Complete 8,000+ steps daily to keep\nyour streak alive.",
+            "Complete ${profile.dailyGoalSteps.toLocaleString()}+ steps daily to keep\nyour streak alive.",
             style: GoogleFonts.outfit(
               fontSize: 12,
               color: AppTheme.textLight,
@@ -418,8 +465,14 @@ class _StreakCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children:
                 ["M", "T", "W", "T", "F", "S", "S"].map((day) {
-                  final isToday = day == "F";
-                  final isDone = ["M", "T", "W", "T", "F"].contains(day);
+                  final now = DateTime.now();
+                  final dayIndex = (now.weekday - 1);
+                  final weekDays = ["M", "T", "W", "T", "F", "S", "S"];
+                  final targetIndex = weekDays.indexOf(day);
+                  
+                  final isToday = targetIndex == dayIndex;
+                  final isDone = targetIndex <= dayIndex; // Approximation for demo
+                  
                   return Column(
                     children: [
                       Container(
@@ -588,7 +641,10 @@ class _WeeklyStepsCard extends StatelessWidget {
 }
 
 class _InsightCard extends StatelessWidget {
-  const _InsightCard();
+  final String title;
+  final String body;
+  final String emoji;
+  const _InsightCard({required this.title, required this.body, required this.emoji});
 
   @override
   Widget build(BuildContext context) {
@@ -606,11 +662,7 @@ class _InsightCard extends StatelessWidget {
               color: Colors.white,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.lightbulb_outline_rounded,
-              color: AppTheme.primaryGreen,
-              size: 20,
-            ),
+            child: Text(emoji, style: const TextStyle(fontSize: 18)),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -618,7 +670,7 @@ class _InsightCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Today's Insight",
+                  title,
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -626,7 +678,7 @@ class _InsightCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "You're 1,251 steps away from\nreaching your daily goal.",
+                  body,
                   style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: AppTheme.textDark.withValues(alpha: 0.7),
@@ -745,11 +797,3 @@ class _NavBarIcon extends StatelessWidget {
   }
 }
 
-extension IntFormatting on int {
-  String toLocaleString() {
-    return toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
-  }
-}

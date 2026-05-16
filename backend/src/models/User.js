@@ -28,8 +28,10 @@ const userSchema = new mongoose.Schema({
   state: { type: String, index: true },
   country: { type: String, index: true },
   
-  // Auth
-  refreshToken: { type: String },
+  // Social
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  incomingRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   
   createdAt: { type: Date, default: Date.now }
 }, {

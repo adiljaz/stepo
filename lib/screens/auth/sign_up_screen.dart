@@ -77,22 +77,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _handleGoogleLogin() async {
-    setState(() => _isLoading = true);
-    final success = await _authService.signIn();
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (success) {
-        context.go('/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Google Sign-In failed."),
-            backgroundColor: AppTheme.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    context.read<AuthCubit>().loginWithGoogle();
   }
 
   @override

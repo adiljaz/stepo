@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
+import '../services/api_service.dart';
 
 const _kName        = 'profile_name';
 const _kAge         = 'profile_age';
@@ -11,8 +12,12 @@ const _kGoal        = 'profile_goal';
 const _kStride      = 'profile_stride';
 const _kSensitivity = 'profile_sensitivity';
 const _kOnboarded   = 'onboarding_complete';
+const _kImage       = 'profile_image';
+const _kStreak      = 'profile_streak';
 
 class UserSettingsCubit extends Cubit<UserProfile> {
+  final ApiService _apiService = ApiService();
+
   UserSettingsCubit() : super(const UserProfile()) {
     _load();
   }
@@ -28,10 +33,25 @@ class UserSettingsCubit extends Cubit<UserProfile> {
       dailyGoalSteps: p.getInt(_kGoal) ?? 8000,
       strideLengthMeters: p.getDouble(_kStride) ?? 0.762,
       aiSensitivity: AISensitivity.values[p.getInt(_kSensitivity) ?? 1],
+      profileImage: p.getString(_kImage) ?? '',
+      streakCount: p.getInt(_kStreak) ?? 0,
     ));
+    
+    // Also try to fetch from server if authenticated
+    await syncFromServer();
   }
 
-  Future<void> save(UserProfile profile) async {
+  Future<void> syncFromServer() async {
+    try {
+      final res = await _apiService.getProfile();
+      if (res.statusCode == 200) {
+        final profile = UserProfile.fromMap(res.data);
+        await save(profile, sync: false);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> save(UserProfile profile, {bool sync = true}) async {
     emit(profile);
     final p = await SharedPreferences.getInstance();
     await p.setString(_kName, profile.name);
@@ -42,7 +62,14 @@ class UserSettingsCubit extends Cubit<UserProfile> {
     await p.setInt(_kGoal, profile.dailyGoalSteps);
     await p.setDouble(_kStride, profile.strideLengthMeters);
     await p.setInt(_kSensitivity, profile.aiSensitivity.index);
+    await p.setString(_kImage, profile.profileImage);
     await p.setBool(_kOnboarded, true);
+
+    if (sync) {
+      try {
+        await _apiService.updateProfile(profile.toMap());
+      } catch (_) {}
+    }
   }
 
   Future<void> setGoal(int goal) => save(state.copyWith(dailyGoalSteps: goal));
@@ -50,5 +77,10 @@ class UserSettingsCubit extends Cubit<UserProfile> {
   static Future<bool> isOnboarded() async {
     final p = await SharedPreferences.getInstance();
     return p.getBool(_kOnboarded) ?? false;
+  }
+
+  static Future<void> setLocalOnboarded(bool value) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setBool(_kOnboarded, value);
   }
 }

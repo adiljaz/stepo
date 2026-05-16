@@ -9,7 +9,8 @@ import '../../models/user_profile.dart';
 import '../../cubits/user_settings_cubit.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  const ProfileSetupScreen({super.key});
+  final bool isEdit;
+  const ProfileSetupScreen({super.key, this.isEdit = false});
 
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -31,6 +32,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     {'icon': Icons.directions_run_outlined, 'label': 'Stay Fit'},
     {'icon': Icons.favorite_outline, 'label': 'Improve Health'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Load existing data if in edit mode
+    final current = context.read<UserSettingsCubit>().state;
+    _nameController.text = current.name;
+    _ageController.text = current.ageYears.toString();
+    _heightController.text = current.heightCm.toString();
+    _weightController.text = current.weightKg.toString();
+    _selectedGoal = current.dailyGoalSteps >= 10000 ? 'Lose Weight' : 'Stay Fit';
+  }
 
   @override
   void dispose() {
@@ -59,10 +72,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     final authCubit = context.read<AuthCubit>();
 
     await settingsCubit.save(profile);
-    await authCubit.completeOnboarding();
     
-    if (!mounted) return;
-    context.go('/home');
+    if (widget.isEdit) {
+      if (!mounted) return;
+      context.pop();
+    } else {
+      authCubit.completeProfileSetup();
+      if (!mounted) return;
+      context.go('/home');
+    }
   }
 
   @override
@@ -112,37 +130,38 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const SizedBox(height: 32),
                   
                   Text(
-                    "Tell us about yourself",
+                    widget.isEdit ? "Update your profile" : "Tell us about yourself",
                     style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.textDark),
                   ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, end: 0),
                   const SizedBox(height: 8),
                   Text(
-                    "Help us personalize your fitness experience",
+                    widget.isEdit ? "Keep your details up to date" : "Help us personalize your fitness experience",
                     style: GoogleFonts.outfit(color: AppTheme.textLight, fontSize: 14),
                   ).animate().fadeIn(delay: 200.ms),
                   
                   const SizedBox(height: 32),
                   
-                  // Stepper
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFBFBFB),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _buildStepperItem(Icons.person_rounded, "Personal", true),
-                        _buildStepperDivider(false),
-                        _buildStepperItem(Icons.track_changes_rounded, "Goals", false),
-                        _buildStepperDivider(false),
-                        _buildStepperItem(Icons.verified_user_rounded, "Review", false),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 300.ms),
+                  // Stepper (Only show in setup mode)
+                  if (!widget.isEdit)
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFBFBFB),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildStepperItem(Icons.person_rounded, "Personal", true),
+                          _buildStepperDivider(false),
+                          _buildStepperItem(Icons.track_changes_rounded, "Goals", false),
+                          _buildStepperDivider(false),
+                          _buildStepperItem(Icons.verified_user_rounded, "Review", false),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 300.ms),
                   
-                  const SizedBox(height: 40),
+                  if (!widget.isEdit) const SizedBox(height: 40),
                   
                   // Card-like Container for Form
                   Container(
@@ -161,6 +180,74 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Profile Picture Section
+                        Center(
+                          child: Stack(
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.2), width: 4),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: context.watch<UserSettingsCubit>().state.profileImage.isNotEmpty
+                                      ? Image.network(
+                                          context.read<UserSettingsCubit>().state.profileImage,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) => Container(
+                                            color: const Color(0xFFF0F7ED),
+                                            child: Center(
+                                              child: Text(
+                                                context.read<UserSettingsCubit>().state.name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase(),
+                                                style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : context.read<UserSettingsCubit>().state.name.isNotEmpty
+                                          ? Container(
+                                              color: const Color(0xFFF0F7ED),
+                                              child: Center(
+                                                child: Text(
+                                                  context.read<UserSettingsCubit>().state.name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase(),
+                                                  style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                                                ),
+                                              ),
+                                            )
+                                          : Image.asset(
+                                              'assets/images/stepup_logo_footprint_1778926775481.png',
+                                              fit: BoxFit.contain,
+                                              scale: 2,
+                                            ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.primaryGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 32),
+                        
                         _buildFieldLabel("Full Name"),
                         const SizedBox(height: 6),
                         TextField(
@@ -293,12 +380,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const SizedBox(height: 48),
                   ElevatedButton(
                     onPressed: _handleFinish,
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("Finish Setup"),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward, size: 20),
+                        Text(widget.isEdit ? "Update Profile" : "Finish Setup"),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward, size: 20),
                       ],
                     ),
                   ),
@@ -307,6 +394,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               ),
             ),
           ),
+          
+          if (widget.isEdit)
+            Positioned(
+              top: 10,
+              left: 10,
+              child: SafeArea(
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  onPressed: () => context.pop(),
+                ),
+              ),
+            ),
         ],
       ),
     );

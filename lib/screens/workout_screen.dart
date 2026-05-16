@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubits/workout_cubit.dart';
 import '../theme/app_theme.dart';
 import '../cubits/step_tracker_cubit.dart';
+import '../cubits/user_settings_cubit.dart';
+import '../models/user_profile.dart';
 
 class WorkoutScreen extends StatefulWidget {
   const WorkoutScreen({super.key});
@@ -33,7 +35,15 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
     return MultiBlocListener(
       listeners: [
         BlocListener<WorkoutCubit, WorkoutState>(
-          listener: (context, state) => _onRouteUpdate(state),
+          listener: (context, state) {
+            if (state.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.redAccent),
+              );
+              context.read<WorkoutCubit>().clearError();
+            }
+            _onRouteUpdate(state);
+          },
         ),
         BlocListener<StepTrackerCubit, StepTrackerState>(
           listener: (context, state) {
@@ -95,7 +105,12 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 // Bottom Stats Card
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: _BottomActivityCard(workout: workout),
+                  child: _BottomActivityCard(
+                    workout: workout,
+                    onStop: (session) {
+                      setState(() => _finishedSession = session);
+                    },
+                  ),
                 ),
               ],
             ),
@@ -137,7 +152,21 @@ class _ChallengeProgressHeader extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _MiniAvatar(url: 'https://i.pravatar.cc/100?u=1'),
+          BlocBuilder<UserSettingsCubit, UserProfile>(
+            builder: (context, profile) {
+              final userName = profile.name;
+              return profile.profileImage.isNotEmpty 
+                ? _MiniAvatar(url: profile.profileImage)
+                : CircleAvatar(
+                    radius: 12, 
+                    backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1), 
+                    child: Text(
+                      userName.isNotEmpty ? userName[0] : 'U', 
+                      style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold)
+                    ),
+                  );
+            },
+          ),
           const SizedBox(width: 8),
           Text("VS", style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.textLight)),
           const SizedBox(width: 8),
@@ -148,7 +177,15 @@ class _ChallengeProgressHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text("10K Steps Battle", style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
-              Text("Leading by 100", style: GoogleFonts.outfit(fontSize: 9, color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+              BlocBuilder<StepTrackerCubit, StepTrackerState>(
+                builder: (context, state) {
+                  final diff = state.steps - 8649;
+                  return Text(
+                    diff >= 0 ? "Leading by ${diff.abs()}" : "Trailing by ${diff.abs()}", 
+                    style: GoogleFonts.outfit(fontSize: 9, color: diff >= 0 ? AppTheme.primaryGreen : Colors.red, fontWeight: FontWeight.bold)
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -166,7 +203,8 @@ class _MiniAvatar extends StatelessWidget {
 
 class _BottomActivityCard extends StatelessWidget {
   final WorkoutState workout;
-  const _BottomActivityCard({required this.workout});
+  final Function(WorkoutSession) onStop;
+  const _BottomActivityCard({required this.workout, required this.onStop});
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +247,8 @@ class _BottomActivityCard extends StatelessWidget {
                   final steps = context.read<StepTrackerCubit>().state.steps;
                   await context.read<WorkoutCubit>().startWorkout(currentSteps: steps);
                 } else {
-                  context.read<WorkoutCubit>().stopWorkout();
+                  final session = context.read<WorkoutCubit>().stopWorkout();
+                  onStop(session);
                 }
               },
               style: ElevatedButton.styleFrom(

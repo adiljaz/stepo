@@ -44,23 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleGoogleLogin() async {
-    // Keeping this for now as a direct service call or move to Cubit later
-    setState(() => _isLoading = true);
-    final success = await _authService.signIn();
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (success) {
-        context.go('/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Google Sign-In failed."),
-            backgroundColor: AppTheme.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    context.read<AuthCubit>().loginWithGoogle();
   }
 
   @override

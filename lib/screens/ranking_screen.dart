@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubits/social_cubit.dart';
+import '../cubits/user_settings_cubit.dart';
 
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
@@ -105,12 +108,20 @@ class _RankingListContent extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
             ),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(24),
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                final rank = index + 4;
-                return _RankTile(rank: rank);
+            child: BlocBuilder<SocialCubit, SocialState>(
+              builder: (context, state) {
+                final rankingList = state.friends;
+                if (rankingList.isEmpty) {
+                  return Center(child: Text("Connect with friends to see rankings!", style: GoogleFonts.outfit(color: AppTheme.textLight)));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: rankingList.length,
+                  itemBuilder: (context, index) {
+                    final user = rankingList[index];
+                    return _RankTile(rank: index + 1, user: user);
+                  },
+                );
               },
             ),
           ),
@@ -125,14 +136,31 @@ class _Podium extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        _PodiumUser(rank: 2, name: "Ananya", steps: 13245, avatar: "https://i.pravatar.cc/100?u=2"),
-        _PodiumUser(rank: 1, name: "Arjun Raj", steps: 15230, avatar: "https://i.pravatar.cc/100?u=1", isLarge: true),
-        _PodiumUser(rank: 3, name: "Nikhil", steps: 12001, avatar: "https://i.pravatar.cc/100?u=3"),
-      ],
+    return BlocBuilder<SocialCubit, SocialState>(
+      builder: (context, state) {
+        final sorted = List<SocialUser>.from(state.friends)
+          ..sort((a, b) {
+            int stepsA = int.tryParse(a.steps.replaceAll(',', '')) ?? 0;
+            int stepsB = int.tryParse(b.steps.replaceAll(',', '')) ?? 0;
+            return stepsB.compareTo(stepsA);
+          });
+
+        if (sorted.isEmpty) {
+          return const SizedBox(height: 150, child: Center(child: Text("No data")));
+        }
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (sorted.length > 1)
+              _PodiumUser(rank: 2, name: sorted[1].name.split(' ')[0], steps: int.tryParse(sorted[1].steps.replaceAll(',', '')) ?? 0, initials: sorted[1].initials),
+            _PodiumUser(rank: 1, name: sorted[0].name.split(' ')[0], steps: int.tryParse(sorted[0].steps.replaceAll(',', '')) ?? 0, initials: sorted[0].initials, isLarge: true),
+            if (sorted.length > 2)
+              _PodiumUser(rank: 3, name: sorted[2].name.split(' ')[0], steps: int.tryParse(sorted[2].steps.replaceAll(',', '')) ?? 0, initials: sorted[2].initials),
+          ],
+        );
+      },
     );
   }
 }
@@ -141,14 +169,14 @@ class _PodiumUser extends StatelessWidget {
   final int rank;
   final String name;
   final int steps;
-  final String avatar;
+  final String initials;
   final bool isLarge;
 
   const _PodiumUser({
     required this.rank,
     required this.name,
     required this.steps,
-    required this.avatar,
+    required this.initials,
     this.isLarge = false,
   });
 
@@ -168,8 +196,9 @@ class _PodiumUser extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: isLarge ? AppTheme.primaryGreen : Colors.transparent, width: 3),
-                image: DecorationImage(image: NetworkImage(avatar), fit: BoxFit.cover),
+                color: const Color(0xFFF0F7ED),
               ),
+              child: Center(child: Text(initials, style: GoogleFonts.outfit(fontSize: isLarge ? 24 : 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen))),
             ),
             Container(
               transform: Matrix4.translationValues(0, 10, 0),
@@ -189,7 +218,8 @@ class _PodiumUser extends StatelessWidget {
 
 class _RankTile extends StatelessWidget {
   final int rank;
-  const _RankTile({required this.rank});
+  final SocialUser user;
+  const _RankTile({required this.rank, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -199,16 +229,20 @@ class _RankTile extends StatelessWidget {
         children: [
           Text(rank.toString(), style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textLight)),
           const SizedBox(width: 16),
-          const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/100')),
+          Container(
+            width: 40, height: 40,
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFF0F7ED)),
+            child: Center(child: Text(user.initials, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen))),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              "Amal C", // Dummy
+              user.name,
               style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark),
             ),
           ),
           Text(
-            "11,245", // Dummy
+            user.steps,
             style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900, color: AppTheme.textDark),
           ),
         ],

@@ -25,7 +25,8 @@ class WorkoutState {
   final List<LatLng> route;
   final double distanceKm;
   final int startSteps;
-  final int currentSteps;
+   final int currentSteps;
+  final String? errorMessage;
 
   WorkoutState({
     required this.isActive,
@@ -33,6 +34,7 @@ class WorkoutState {
     required this.distanceKm,
     required this.startSteps,
     required this.currentSteps,
+    this.errorMessage,
   });
 
   WorkoutState copyWith({
@@ -41,6 +43,7 @@ class WorkoutState {
     double? distanceKm,
     int? startSteps,
     int? currentSteps,
+    String? errorMessage,
   }) {
     return WorkoutState(
       isActive: isActive ?? this.isActive,
@@ -48,6 +51,7 @@ class WorkoutState {
       distanceKm: distanceKm ?? this.distanceKm,
       startSteps: startSteps ?? this.startSteps,
       currentSteps: currentSteps ?? this.currentSteps,
+      errorMessage: errorMessage,
     );
   }
 }
@@ -93,8 +97,12 @@ class WorkoutCubit extends Cubit<WorkoutState> {
     }, onError: (Object error) {
       _gpsSub?.cancel();
       _gpsSub = null;
-      emit(state.copyWith(isActive: false));
+      emit(state.copyWith(isActive: false, errorMessage: 'GPS Connection Lost. Please check your location settings.'));
     });
+  }
+
+  void clearError() {
+    emit(state.copyWith(errorMessage: null));
   }
 
   void updateSteps(int steps) {

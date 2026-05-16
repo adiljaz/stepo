@@ -35,8 +35,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigate(AuthStatus status) {
     switch (status) {
-      case AuthStatus.onboardingRequired:
-        context.go('/onboarding');
+      case AuthStatus.profileSetupRequired:
+        context.go('/profile-setup');
         break;
       case AuthStatus.authenticated:
         context.go('/home');

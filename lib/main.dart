@@ -8,6 +8,8 @@ import 'services/background_service.dart';
 import 'theme/app_theme.dart';
 
 import 'cubits/auth_cubit.dart';
+import 'cubits/social_cubit.dart';
+import 'cubits/workout_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,10 +31,18 @@ class StepoApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => AuthCubit()),
-        BlocProvider(create: (context) => StepTrackerCubit()),
         BlocProvider(create: (context) => UserSettingsCubit()),
+        BlocProvider(
+          create: (context) => AuthCubit(context.read<UserSettingsCubit>()),
+        ),
+        BlocProvider(
+          create: (context) => StepTrackerCubit(context.read<UserSettingsCubit>()),
+        ),
         BlocProvider(create: (context) => InsightCubit()),
+        BlocProvider(
+          create: (context) => SocialCubit(context.read<AuthCubit>()),
+        ),
+        BlocProvider(create: (context) => WorkoutCubit()),
       ],
       child: MaterialApp.router(
         title: 'Stepo',
